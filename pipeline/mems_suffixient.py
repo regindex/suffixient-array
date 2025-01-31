@@ -37,19 +37,31 @@ def main():
   parser.add_argument('-t', help='number of helper threads (def. None)', default=0, type=int)
   #parser.add_argument('-o', help='output file path (def. None)', default="", type=str)
   #parser.add_argument('-v',  help='verbose',action='store_true')
-  parser.add_argument('-c',  help='print size of the suffixient set to console',action='store_true')
-  parser.add_argument('-r',  help='print the number of runs of the BWT',action='store_true')
-  parser.add_argument('-i',  help='invert the text before running PFP',action='store_true')
+  parser.add_argument('-c', '--chi', help='print size of the suffixient set to console',action='store_true')
+  parser.add_argument('-r', '--runs', help='print the number of runs of the BWT',action='store_true')
+  parser.add_argument('--invert_text', help='invert the text before running PFP',action='store_true')
+  parser.add_argument('--suff_only', help='stop after suffixient set construction', action='store_true')
   #parser.add_argument('-m', help='print memory usage',action='store_true')
   args = parser.parse_args()
 
+  if args.invert_text and args.algorithm != "PFP":
+    print("Inverting the text must be run only when using PFP!")
+    exit(1)
+
+  if args.mems == 'None':
+    args.suff_only = True
+
   if args.algorithm == "PFP":
+    if args.mems:
+      print("Searching MEMs using PFP algorithm is not implemented yet!")
+      exit(1)
+
     logfile_name = args.input + ".suffixient.log"
     # get main directory
     args.bigbwt_dir = os.path.split(sys.argv[0])[0]
     print("Sending logging messages to file:", logfile_name)
     # invert the input file
-    if args.i:
+    if args.invert_text:
       text = ""
       with open(args.input,"r") as file:
         text = file.read()
@@ -112,18 +124,24 @@ def main():
       start0 = start = time.time()
       command = "{exe} -o {output}".format(
               exe = os.path.join(dirname,"sources/one-pass-lcs"),
-              output=args.input+".suffixient")
+              output=args.input)
+
+      if args.mems:
+        command += " -l"
       
       print("==== Suffixient set construction. Command:", command)
       if(execute_command_stdIn(command,args.input,logfile,logfile_name)!=True):
         return
       print("Elapsed time: {0:.4f}".format(time.time()-start))
+
+      if args.suff_only:
+        print("Stopping after suffixient construction phase!")
+        exit(1)
       
       start = time.time()
-      command = "{exe} {input} {suff_set} {suff_lcs} {suff_first} {patterns}".format(
-                exe=test_index_exe, input=args.input, suff_set=args.input+".suffixient",
-                suff_lcs=args.input+".suffixient.lcs", suff_first=args.input+".suffixient.first",
-                patterns=args.mems)
+      command = "{exe} -t {input} -s {suff_set} -l {suff_lcs} -p {patterns}".format(
+                exe=test_index_exe, input=args.input, suff_set=args.input+".suff",
+                suff_lcs=args.input+".lcs", patterns=args.mems)
       print("==== Suffixient index construction and MEMs testing. Command:", command)
       if(execute_command(command,logfile,logfile_name)!=True):
         return
@@ -182,7 +200,7 @@ def execute_command(command,logfile,logfile_name,env=None):
 def execute_command_stdIn(command,inputfile,logfile,logfile_name,env=None):
   try:
     with open(inputfile,'rb') as a:
-      subprocess.Popen(command.split(),stdin=a,stderr=logfile,env=env)
+      subprocess.check_call(command.split(),stdin=a,stderr=logfile,env=env)
   except subprocess.CalledProcessError:
     print("Error executing command line:")
     print("\t"+ command)

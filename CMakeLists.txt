@@ -48,9 +48,9 @@ endif()
 set(CMAKE_INSTALL_INCLUDEDIR "include")
 add_subdirectory(thirdparty)
 
+add_subdirectory(include)
 add_subdirectory(sources)
 add_subdirectory(index)
-add_subdirectory(include)
 
 #add_subdirectory(experiments)
 

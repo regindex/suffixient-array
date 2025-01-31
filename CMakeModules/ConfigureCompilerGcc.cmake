@@ -14,7 +14,7 @@ add_compile_options("-Wcomment")
 
 # Add the basic compiler options for debug version
 #add_compile_options($<$<CONFIG:Debug>:-ggdb3>)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address -fno-omit-frame-pointer -ggdb3")
 # Add the basic compiler options for release version
 #add_compile_options($<$<CONFIG:Release>:-ansi -march=native -funroll-loops -O3>)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ansi -march=native -funroll-loops -O3 -DNDEBUG")

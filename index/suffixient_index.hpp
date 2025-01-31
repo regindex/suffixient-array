@@ -1,4 +1,4 @@
-// Copyright (c) 2024, REGZ.  All rights reserved.
+// Copyright (c) 2025, REGINDEX.  All rights reserved.
 // Use of this source code is governed
 // by a MIT license that can be found in the LICENSE file.
 
@@ -11,18 +11,12 @@
 
 #include <chrono>
 #include <malloc_count.h>
+// common definitions
+#include <common.hpp>
+// prefix-search data structure
 #include <CTriePP.hpp>
-//#include <RePairSLPIndex.h>
-//#include <static_selfindex_lz77.h>
-//#include <utils.h>
-#include <LZ77_LCP_LCS_DS.hpp>
-
-typedef uint32_t LUint;
-typedef int32_t  Lint;
-typedef int64_t  Usafe;
-
-#define DEF_BUFFER_SIZE 1000000
-#define SIGMA 128
+// LCP/LCS data structure
+#include <LZ77_Kreft_Navarro_index.hpp>
 
 namespace suffixient{
 
@@ -34,12 +28,12 @@ public:
 	suffixient_index(){}
 
 	// build suffixient index by indexing the whole text prefixes
-	std::pair<Usafe,Usafe> build(const std::string &text, const std::string &suffixient,
+	std::pair<safe_t,safe_t> build(const std::string &text, const std::string &suffixient,
 		                                                  bool verbose = false)
 	{
 		// BEUILD PREFIX SEARCH DATA STRUCTURE //
-		std::vector<LUint> suffixient_set;
-		LUint tot_inserted_char = 0, tot_inserted_keywords = 0;
+		std::vector<uint_t> suffixient_set;
+		safe_t tot_inserted_char = 0, tot_inserted_keywords = 0;
 	    // Open the file in binary mode
 	    std::ifstream file(suffixient, std::ios::binary);
 	    if (!file.is_open()) {
@@ -47,7 +41,7 @@ public:
 	        exit(1);
 	    }
 
-	    Usafe number;
+	    safe_t number;
 	    size_t count = 0;
 
 	    while (file.read(reinterpret_cast<char*>(&number), 5))
@@ -68,8 +62,8 @@ public:
 	    }
 
 	    std::string last_prefix;
-	    Usafe last_index = 0;
-	    for(Usafe i=0;i<suffixient_set.size();++i)
+	    safe_t last_index = 0;
+	    for(safe_t i=0;i<suffixient_set.size();++i)
 	    {
 	        std::string buffer(suffixient_set[i] - last_index + 1, '0');
 	        file.read(&buffer[0], suffixient_set[i] - last_index + 1);
@@ -89,7 +83,7 @@ public:
 	    file.close();
 	    if(verbose)
 	    {
-	    	print_trie();
+	    	//print_trie();
 	    	std::cout << "Tot inserted symbols: " << tot_inserted_char << std::endl;
 	    	std::cout << "Tot inserted keywords: " << tot_inserted_keywords << std::endl;
 	    }
@@ -99,17 +93,19 @@ public:
 
 	    return std::make_pair(tot_inserted_char, tot_inserted_keywords);
 	}
-	
-	// build suffixient index by indexing the supermaximal extensions
-	std::pair<Usafe,Usafe> build(const std::string &text, const std::string &suffixient, 
-								 const std::string &lcs, const std::string &first,
-								 bool verbose = false)
-	{
-		// BEUILD PREFIX SEARCH STRUCTURE //
-		std::vector<std::pair<LUint,LUint>> keywords;
-		LUint tot_inserted_char = 0, tot_inserted_keywords = 0;
 
-	    // Open the file in binary mode
+	// build suffixient index by indexing the supermaximal extensions
+	std::pair<safe_t,safe_t> build(const std::string &text, const std::string &suffixient,
+		                         		   const std::string &lcs, bool verbose = false)
+	{
+		// BEUILD LCP LCS DATA STRUCTURE //
+		std::cout << "Constructing LCP/LCS data structure for " << text << std::endl;
+	    G.build(text);
+		// BUILD PREFIX-SEARCH DATA STRUCTURE //
+		std::vector<std::pair<uint_t,uint_t>> keywords;
+		safe_t tot_inserted_char = 0, tot_inserted_keywords = 0;
+
+	    // Open the input files in binary mode
 	    std::ifstream file1(suffixient, std::ios::binary);
 	    std::ifstream file2(lcs, std::ios::binary);
 	    if (!file1.is_open() or !file2.is_open()) {
@@ -117,20 +113,25 @@ public:
 	        exit(1);
 	    }
 
-	    Usafe pos, lcs_val;
-	    while (file1.read(reinterpret_cast<char*>(&pos), 5) and
-	    		  	  file2.read(reinterpret_cast<char*>(&lcs_val), 5))
+	    safe_t pos, lcs_val; int TEMP = 0;
+	    std::vector<uint8_t> suff_buffer(5,0), lcs_buffer(5,0);
+	    //while (file1.read(reinterpret_cast<char*>(&pos), 5) and
+	    //		  	  file2.read(reinterpret_cast<char*>(&lcs_val), 5))
+	    while (file1.read(reinterpret_cast<char*>(&suff_buffer[0]), 5) and
+	    	   file2.read(reinterpret_cast<char*>(&lcs_buffer[0]), 5)
+	    	  )
 	    {
-	        assert(pos > 0 and lcs_val >= 0);
+	    	pos = get_5bytes_uint(&suff_buffer[0]);
+	    	lcs_val = get_5bytes_uint(&lcs_buffer[0]);
 
-	        lcs_val += 1;
-	        keywords.push_back(std::make_pair(pos-lcs_val,lcs_val));
+        lcs_val += 1;
+        keywords.push_back(std::make_pair(pos-lcs_val+1,lcs_val));
 	    }
 	    if (not (file1.eof() or file2.eof()) )
 	    	{ std::cerr << "An error occurred while reading the files." << std::endl; }
 	    file1.close(); file2.close();
 
-	    std::sort(keywords.begin(), keywords.end());
+	    //std::sort(keywords.begin(), keywords.end());
 
 	    file1 = std::ifstream(text, std::ios::binary);
 	    if (!file1.is_open()) {
@@ -140,88 +141,44 @@ public:
 
 	    // compute file size
 	    file1.seekg(0, std::ios::end);
-	    Usafe file_size = file1.tellg();
+	    safe_t file_size = file1.tellg();
 	    file1.seekg(0, std::ios::beg);
 	    // initialize text buffer
-	    Usafe buffer_size = std::min(Usafe(DEF_BUFFER_SIZE),file_size);
-	    Usafe curr = 0, last = buffer_size;
+	    safe_t buffer_size = std::min(safe_t(DEF_BUFFER_SIZE),file_size);
+	    safe_t curr = 0, last = buffer_size;
 	    std::string buffer(buffer_size,'0');
 	    file1.read(&buffer[0], buffer_size);
 
-	    std::vector<LUint> first_keywords;
-	    for(Usafe i=0;i<keywords.size();++i)
+	    for(safe_t i=0;i<keywords.size();++i)
 	    {
-	    	Usafe start = keywords[i].first;
-	    	Usafe len   = keywords[i].second;
+	    	safe_t start = keywords[i].first;
+	    	safe_t len   = keywords[i].second;
 
-	    	if(len > 1)
+	    	if(not contained(curr,last,start,start+len))
 	    	{
-		    	if(start+len > last)
-		    	{
-		    		curr = start;
-		    		file1.seekg(curr, std::ios::beg);
-		    		buffer_size = std::max(buffer_size,len);
-		    		buffer.resize(buffer_size);
-		    		file1.read(&buffer[0], buffer_size);
-		    		last = curr + buffer_size;
-		    	}
+	    		file1.clear();
+	    		curr = start;
+	    		file1.seekg(curr, std::ios::beg);
+	    		buffer_size = std::max(safe_t(DEF_BUFFER_SIZE),len);
+	    		buffer.clear();
+	    		buffer.resize(buffer_size);
+	    		file1.read(&buffer[0], buffer_size);
+	    		last = curr + buffer_size;
+	    	}
 
-	    		std::string keyword(keywords[i].second, '0');
-	    		for(Usafe i=0;i<keyword.size();++i)
-	    			keyword[i] = buffer[start+len-i-curr-1];
+    		std::string keyword(keywords[i].second, '0');
 
-		        if(verbose)
-		        	std::cout << "Insert 1: " << keyword << " : " << start+len-1 << std::endl;
-	        	insert_prefix(keyword,start+len-1);
-	        	tot_inserted_char += keyword.size();
-	        	tot_inserted_keywords++;
-        	}
-        	else
-        		first_keywords.push_back(start);
+    		for(safe_t i=0;i<keyword.size();++i)
+    			keyword[i] = buffer[start+len-i-curr-1];
+
+      	insert_prefix(keyword,start+len-1);
+      	tot_inserted_char += keyword.size();
+      	tot_inserted_keywords++;
 	    }
-	    file1.clear();
-	    file1.seekg(0, std::ios::beg);
-
-	    file2 = std::ifstream(first, std::ios::binary);
-	    std::vector<LUint> first_lcs;
-	    while (file2.read(reinterpret_cast<char*>(&lcs_val), 5))
-	    	first_lcs.push_back(lcs_val+1);
-	    file2.close();
-
-	    for(Usafe i=0;i<first_keywords.size();++i)
-	    {
-	    	file1.seekg(first_keywords[i], std::ios::beg);
-	    	char c = file1.peek();
-	    	buffer.resize(first_lcs[c]);
-	    	file1.seekg(first_keywords[i]-first_lcs[c]+1, std::ios::beg);
-	    	file1.read(&buffer[0], first_lcs[c]);
-	    	std::reverse(buffer.begin(),buffer.end());
-
-	        if(verbose)
-	        	std::cout << "Insert 2: " << buffer << " : " << first_keywords[i] << std::endl; 
-	    	insert_prefix(buffer,first_keywords[i]);
-        	tot_inserted_char += buffer.size();
-        	tot_inserted_keywords++;
-	    }
-
 	    file1.close();
-	    if(verbose)
-	    {
-	    	print_trie();
-	    	std::cout << "Tot inserted symbols: " << tot_inserted_char << std::endl;
-	    	std::cout << "Tot inserted keywords: " << tot_inserted_keywords << std::endl;
-	    }
-
-	    // BEUILD LCP LCS DATA STRUCTURE //
-	    G.build(text,8);
-
-	    //std::string pattern = "TGATGATA";
-	    //std::string pattern = "TGATGATAAGGTAGGAATAG";
-	    //std::string pattern = "TGATGATAATAAAGA";
-	    //find_MEMs(pattern);
 
 	    return std::make_pair(tot_inserted_char, tot_inserted_keywords);
-	}	
+	}
 
 	// function to insert a prefix - text position pair in the z-fast trie
 	template<typename U>
@@ -257,7 +214,7 @@ public:
 	Ulong locate_prefix(std::string pattern){ return Z.locatePrefix(pattern); }
 
 	//
-	std::pair<Ulong,Int> locate_longest_prefix(std::string pattern){
+	std::tuple<Ulong,Int,bool> locate_longest_prefix(std::string pattern){
 		return Z.locateLongestPrefix(pattern);
 	}
 
@@ -273,33 +230,41 @@ public:
 		int64_t pstart = 0;
 		while(i < m)
 		{
-			////std::cout << "#################### " << pattern.substr(pstart,(i+1)-pstart) << std::endl;
 			std::string right_max_substr = pattern.substr(pstart,(i+1)-pstart);
 			std::reverse(right_max_substr.begin(),right_max_substr.end());
-			//std::cout << "right maximal substring: " << right_max_substr << std::endl;
 			auto j = locate_longest_prefix(right_max_substr);
-			// if a character does not appear in the text
-			// FARE RIFERIMENTO PROBLEMA CARATTERE PRESENTE NEL PATTERN MA NON NEL TESTO
-			size_t b = G.LCS(pattern,i,j.first);
-			////std::cout << "b: " << b << " l: " << l << std::endl;
+			size_t b = G.LCS(pattern,i,std::get<0>(j));
 			if(b <= l)
 			{
-				////std::cout << "(" << i-l << "," << l << ") " << std::endl;
 				output << "(" << i-l << "," << l << ") ";
 				pstart = i-l+1;
 			}
-			size_t f = G.LCP(pattern,i+1,j.first+1);
-			////std::cout << "f: " << f << std::endl;
+			size_t f = G.LCP(pattern,i+1,std::get<0>(j)+1);
 			i = i + f + 1;
 			l = b + f;
-			////std::cout << "i: " << i << " l: " << l << std::endl;
-			//"j = ZFT(P[1..i])"
-			//"b = LCS(P[1..i], T[1..j])"
-			//if(b <= l)
-				//"report (i − ℓ, i − 1)"
-			//"f = LCP(P[i + 1..m], T[j + 1..n])"
-			//"i = i + f + 1"
-			//"l = b + f"
+		}
+		output << "(" << i-l << "," << l << ")" << std::endl;
+	}
+
+	void find_MEMs_v2(string& pattern, std::ofstream& output)
+	{
+		size_t i = 0, l = 0, m = pattern.size();
+		int64_t pstart = 0;
+		while(i < m)
+		{
+			std::string right_max_substr = pattern.substr(pstart,(i+1)-pstart);
+			std::reverse(right_max_substr.begin(),right_max_substr.end());
+			auto j = locate_longest_prefix(right_max_substr);
+			size_t b = std::get<1>(j);
+			if(not std::get<2>(j)){ b += G.LCS(pattern,i-b,std::get<0>(j)-b); }
+			if(b <= l)
+			{
+				output << "(" << i-l << "," << l << ") ";
+				pstart = i-l+1;
+			}
+			size_t f = G.LCP(pattern,i+1,std::get<0>(j)+1);
+			i = i + f + 1;
+			l = b + f;
 		}
 		output << "(" << i-l << "," << l << ")" << std::endl;
 	}
@@ -310,10 +275,8 @@ public:
 		std::ofstream output(patternFile+".mems");
 
 		std::string line;
-		size_t i=0;
+		size_t i=0,c=0;
 
-    	//std::cout << "Memory peak before searching for MEMs = " <<
-    	//		     malloc_count_peak() << std::endl;
 		malloc_count_reset_peak();
 		auto start = std::chrono::high_resolution_clock::now();
 
@@ -321,21 +284,31 @@ public:
 		{
 			if(i%2 != 0)
 			{
-				////std::cout << line << std::endl;
-				find_MEMs(line,output);
+				find_MEMs_v2(line,output);
+				c += line.size();
 			}
 			else{ output << line << std::endl; }
 			i++;
 		}
-    
-    	std::chrono::duration<double> duration = 
-    			std::chrono::high_resolution_clock::now() - start;
-    	std::cout << "Memory peak while searching for MEMs = " <<
-    			     malloc_count_peak() << std::endl;
-    	std::cout << "Elapsed time while searching for MEMs = " <<
-    			     duration.count() << std::endl;
 
 		patterns.close();
+		output.close();
+
+		output = std::ofstream(patternFile+".stats");
+    
+		std::chrono::duration<double> duration = 
+				std::chrono::high_resolution_clock::now() - start;
+		output << "Memory peak while searching for MEMs = " <<
+				     malloc_count_peak() << " Kb" << std::endl;
+		output << "Elapsed time while searching for MEMs = " <<
+				     duration.count() << " sec" << std::endl;
+		output << "Number of patterns = " << i/2 
+		 		  << ", Total number of characters = " << c << std::endl;
+		output << "Elapsed time per pattern = " <<
+				     (duration.count()/(i/2))*1000 << " milliSec" << std::endl;
+		output << "Elapsed time per character = " <<
+				     (duration.count()/(c))*1000000 << " microSec" << std::endl;
+
 		output.close();
 
 		return;

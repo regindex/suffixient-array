@@ -4,46 +4,90 @@
 #include <cstdint>
 #include <vector>
 #include <algorithm>
+#include <limits>
+#include <unistd.h>
+
+using namespace std;
 
 #include "suffixient_index.hpp"
+
+void help(){
+
+    cout << "build_test_index [options]" << endl <<
+    "Options:" << endl <<
+    "-h          Print usage info." << endl <<
+    "-t <arg>    Input text file path. Default: Empty." << endl << 
+    "-s <arg>    Suffixient set file path. Default: Empty." << endl << 
+    "-l <arg>    Supermaximal string lengths file path. Default: Empty." << endl << 
+    "-p <arg>    Fasta file path containing the sequences for MEMs searching procedure. Default: Empty." << endl << 
+    //"-o <arg>    Store output to file using 64-bits unsigned integers. If not specified, output is streamed to standard output in human-readable format." << endl <<
+    "-v          Activate verbosity mode. Default: false." << endl;
+    exit(0);
+} 
 
 int main(int argc, char* argv[])
 {
     if(argc < 3)
     {
-        std::cerr << "./build_index [input_text] [suffixient_set_file] OPTIONAL:" <<
-                     "[supermaximal_s_lengths] [first_s_lengths] [patterns_file]" << std::endl;
-        std::cerr << "Wrong number of parameters..." << std::endl;
+        cerr << "Wrong number of parameters... See the help messagge:" << endl;
+        help();
         exit(1);
     }
 
-    std::string inputFileName, suffixientFileName, lcsFileName, firstFileName, patternFileName;
-    inputFileName = argv[1];
-    suffixientFileName = argv[2];
-    if(argc == 5)
+    string outputFile, textFile, suffixientFile, lengthsFile, patternsFile;
+    bool verbose = false;
+
+    int opt;
+    while ((opt = getopt(argc, argv, "hvp:l:s:t:o:")) != -1)
     {
-        lcsFileName = argv[3];
-        firstFileName = argv[4];
+        switch (opt){
+            case 'h':
+                help();
+            break;
+            case 'v':
+                verbose=true;
+            break;
+            case 'o':
+                outputFile = string(optarg);
+            break;
+            case 't':
+                textFile = string(optarg);
+            break;
+            case 's':
+                suffixientFile = string(optarg);
+            break;
+            case 'l':
+                lengthsFile = string(optarg);
+            break;
+            case 'p':
+                patternsFile = string(optarg);
+            break;
+            default:
+                help();
+            return -1;
+        }
     }
-    else if(argc == 6)
-    {
-        lcsFileName = argv[3];
-        firstFileName = argv[4];
-        patternFileName = argv[5];
-    }
-    else{ std::cerr << "Incorrect number of parameters..." << std::endl; exit(1); }
 
     // initialize the index
-    suffixient::suffixient_index<ctriepp::CTriePP<Lint>,lz77::LZ77_LCP_LCS_DS> index{};
+    suffixient::suffixient_index
+            <ctriepp::CTriePP<int_t>,lz77::LZ77_Kreft_Navarro_index> index{};
     // build the index
-    if(argc < 5)
-        index.build(inputFileName,suffixientFileName,true);
+    std::pair<safe_t,safe_t> res;
+    if(lengthsFile.size() == 0)
+        res = index.build(textFile,suffixientFile,verbose);
     else
-        index.build(inputFileName,suffixientFileName,lcsFileName,firstFileName,true);
-    // store/load the index (not yet implemented)
-    // std::cout << "tot size: " << index.store(std::string("prova.sufi")) << std::endl;
-    // loaded.load("test.suff"); 
-    index.locate_fasta(patternFileName);
+        res = index.build(textFile,suffixientFile,lengthsFile,verbose);
+
+    std::ofstream output(textFile+".stats");
+
+    output << "Index construction completed for " << textFile << ":" << std::endl
+              << "Total inserted keywords = " << res.second << std::endl
+              << "Total inserted characters = " << res.first << std::endl;
+
+    output.close();
+
+    if(patternsFile.size() > 0)
+        index.locate_fasta(patternsFile);
 
     return 0;
 }
