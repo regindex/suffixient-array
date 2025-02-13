@@ -1,29 +1,29 @@
-#ifndef LZ77_DISPLAY_HPP
-#define LZ77_DISPLAY_HPP
+#ifndef LZ77_COMPRESSED_TEXT_HPP
+#define LZ77_COMPRESSED_TEXT_HPP
 
-#include <static_selfindex.h>
+#include <static_compressed_text.h>
 #include <utils.h>
 
 namespace lz77 {
 
 //template <typename Value, const Value EMPTY_VALUE = -1>
-class LZ77_Kreft_Navarro_index
+class LZ77_compressed_text
 {
 public:
 
-    LZ77_Kreft_Navarro_index(){};
+    LZ77_compressed_text(){};
 
     void build(std::string input_file, size_t window_size_ = 8)
     {
         this->window_size = window_size_;
         std::string index_file = input_file + ".lz77";
-        idx = lz77index::static_selfindex_lz77::build(&input_file[0],&index_file[0], br, bs, ss);
+        idx = lz77index::static_compressed_text_lz77::build(&input_file[0],&index_file[0], br, bs, ss);
     }
 
     void load(std::string index_file)
     {
         FILE* lz77index_fp = fopen(index_file.c_str(),"r");
-        this->idx = lz77index::static_selfindex_lz77::load(lz77index_fp);
+        this->idx = lz77index::static_compressed_text_lz77::load(lz77index_fp);
         fclose(lz77index_fp);
         this->window_size = 8;
     }
@@ -146,11 +146,11 @@ public:
 
 private:
 
-   lz77index::static_selfindex* idx;  
+   lz77index::static_compressed_text* idx;  
    size_t window_size;
    unsigned char br = 0, bs = 0, ss = 0;
 };
 
 }  // namespace lz77
 
-#endif  // LZ77_DISPLAY_HPP
+#endif  // LZ77_COMPRESSED_TEXT_HPP

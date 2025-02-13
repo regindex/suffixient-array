@@ -10,5 +10,8 @@ target_include_directories(ctriepp PUBLIC ctriepp)
 add_subdirectory(LZ)
 #target_include_directories(LZ PUBLIC LZ)
 
+add_subdirectory(bitvectors)
+target_include_directories(bitvectors PUBLIC bitvectors)
+
 add_subdirectory(suffixient_array)
 target_include_directories(suffixient_array PUBLIC suffixient_array)

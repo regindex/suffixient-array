@@ -25,27 +25,27 @@ struct lcp_maxima
 	int64_t lcs;
 	bool active;
 	lcp_maxima(int64_t len_, uint64_t pos_, int64_t lcs_, bool active_) :
-										len(len_), pos(pos_), lcs(lcs_), active(active_) {}
+					   len(len_), pos(pos_), lcs(lcs_), active(active_) {}
 };
 
 void help(){
 
-	cout << "suffixient [options]" << endl <<
-	"Input: non-empty ASCII file without character 0x0, from standard input. Output: smallest suffixient-nexessary set." << endl <<
+	cout << "Software to compute all ingredients necessary to construct different variants for the suffixient index." << endl <<
+	        "one-pass-index [options]" << endl <<
+	"Input: non-empty ASCII file without character 0x0, from standard input." << endl <<
+	"Output: depending on the index variant: smallest suffixient vector, supermaximal substrings LCS vector, right-extension multiplicities, Prefix array. " <<
+			    "All integers are store in binary format using 5 bytes per entry." << endl <<
 	"Warning: if 0x0 appears, the standard input is read only until the first occurrence of 0x0 (excluded)." << endl <<
 	"Options:" << endl <<
 	"-h          Print usage info." << endl <<
-	"-l          Store LCS information between supermaximal substrings. Default: false." << endl << 
+	"-t          Select the index variant for which you want to compute the components" <<
+	             "(z-fastTrie-based|suffixientArray-based|prefixArray-based). Default: false." << endl << 
 	"-o <arg>    Output files basepath. If not specified, output is streamed to standard output in human-readable format." << endl <<
-	"-t          Remap original alphabet to a contiguos range 0,1,...,N. Default: false." << endl <<
-	"-s          Sort output suffixient set. Default: false." << endl <<
-	"-p          Print to standard output size of suffixient set. Default: false." << endl <<
-	"-r          Print to standard output number of equal-letter runs in the BWT of reverse text. Default: false." << endl <<
-	"-i          Print to standard output statistics on the LCS value distribution. Default: false." << endl;
+	"-i          Print to standard output statistics on the supermaximal string lengths distribution. Default: false." << endl;
 	exit(0);
 } 
 
-inline void eval(uint64_t sigma, int64_t m, vector<lcp_maxima>& R,  
+inline void eval(uint64_t sigma, int64_t m, vector<lcp_maxima_lcs>& R,  
 								 vector<uint64_t>& S, vector<int64_t>& L,
 								 vector<uint64_t>& A, vector<int64_t>& last)
 {
@@ -67,45 +67,59 @@ inline void eval(uint64_t sigma, int64_t m, vector<lcp_maxima>& R,
 		  }
 }
 
+inline void eval(uint64_t sigma, int64_t m, vector<lcp_maxima_lcs>& R,  
+				 vector<uint64_t>& S, vector<int64_t>& L, vector<uint64_t>& A)
+{
+	for(uint8_t c = 1; c < sigma; ++c)
+	  if(m < R[c].len)
+		  {
+		    // process an active candidate
+		    if(R[c].active)
+		    {
+		    	S.push_back(R[c].pos - 1);
+		    	L.push_back(R[c].lcs + 1);
+		    	A[c]++;
+		    }
+		    // update to inactive state
+		    R[c] = {m,0,m,false};
+		  }
+}
+
+inline void z_fast_trie_index()
+
+inline void suffixient_array_index()
+
 int main(int argc, char** argv){
 
 	if(argc < 2) help();
 
 	string output_basepath;
 
-	bool sort = false;
-	bool rho = false;
-	bool runs = false;
-	bool remap = false;
-	bool lcs_info = false;
-	bool lcs_stats = false;
+	bool z_fast, sA, pa, len_stats;
+	z_fast = sA = pa = len_stats = false;
 
 	int opt;
-	while ((opt = getopt(argc, argv, "prshtlio:")) != -1){
-		switch (opt){
+	while ((opt = getopt(argc, argv, "zspio:")) != -1)
+	{
+		switch (opt)
+		{
 			case 'h':
 				help();
 			break;
-			case 'l':
-				lcs_info=true;
+			case 'z':
+				z_fast = true;
+			break;
+			case 's':
+				sA = true;
 			break;
 			case 'o':
 				output_basepath = string(optarg);
 			break;
-			case 's':
-				sort=true;
-			break;
 			case 'p':
-				rho=true;
-			break;
-			case 'r':
-				runs=true;
-			break;
-			case 't':
-				remap=true;
+				pa = true;
 			break;
 			case 'i':
-				lcs_stats=true;
+				len_stats = true;
 			break;
 			default:
 				help();
@@ -161,10 +175,12 @@ int main(int argc, char** argv){
 
 	//vector with candidate suffixient right-extensions
 	vector<lcp_maxima> R(sigma,{-1,0,-1,false}); 
-	vector<uint64_t> S;
-	vector<int64_t>  L;
-	vector<uint64_t> A(sigma,0);
-	vector<int64_t>  last(sigma,-1);
+	vector<uint64_t> S, A(sigma,0);
+	vector<int64_t>  L, Len, last(sigma,-1);
+
+	if(z_fast){ z_fast_trie_index(R,S,A,Len,last); }
+
+	compute_smallest_suffixient_set(R,S,)
 
 	for(uint64_t i=1;i<N;++i)
 	{
@@ -206,26 +222,37 @@ int main(int argc, char** argv){
   }
   else
   {
-  	string suffixient_output_basepath = output_basepath + ".suff";
-    ofstream ofs(suffixient_output_basepath, ios::binary);
-    for (const auto& x : S) { ofs.write(reinterpret_cast<const char*>(&x), STORE_SIZE); }
-    ofs.close();
-  	string suff_alph_output_basepath = output_basepath + ".alph";
-  	ofs = ofstream(suff_alph_output_basepath, ios::binary);
-  	for (const auto& x : A) { ofs.write(reinterpret_cast<const char*>(&x), STORE_SIZE); }
-  	ofs.close();
-  	if(lcs_info)
-  	{
+		string suffixient_output_basepath = output_basepath + ".suff";
+	  ofstream ofs(suffixient_output_basepath, ios::binary);
+	  for (const auto& x : S) { ofs.write(reinterpret_cast<const char*>(&x), STORE_SIZE); }
+	  ofs.close();
+		if(mult)
+		{
+	  	string suff_alph_output_basepath = output_basepath + ".mult";
+	  	ofs = ofstream(suff_alph_output_basepath, ios::binary);
+	  	for (const auto& x : A) { ofs.write(reinterpret_cast<const char*>(&x), STORE_SIZE); }
+	  	ofs.close();
+		}
+		if(lcs_info)
+		{
 	  	string lcs_output_basepath = output_basepath + ".lcs";
 	  	ofs = ofstream(lcs_output_basepath, ios::binary);
 	  	for (const auto& x : L) { ofs.write(reinterpret_cast<const char*>(&x), STORE_SIZE); }
+	  	ofs.close();
+		}
+		if(sa)
+		{
+	  	string sa_output_basepath = output_basepath + ".sa";
+	  	ofs = ofstream(sa_output_basepath, ios::binary);
+	  	for (size_t i=1;i<N;++i)
+	  		{ size_t x = N - SA[i] - 1; ofs.write(reinterpret_cast<const char*>(&x), STORE_SIZE); }
 	  	ofs.close();
 		}
   }
 
   if(rho) cout << "Size of smallest suffixient set: " << S.size() << endl;
   if(runs) cout << "Number of equal-letter BWT(rev(T)) runs: " << bwtruns << endl;
-  if(lcs_stats)
+  if(len_stats)
   {
   	size_t N = 34;
   	std::vector<uint64_t> freq(N,0);

@@ -5,8 +5,8 @@
 #target_link_libraries(pfp_suffixient64 common pfp pfp_iterator gsacak64 sdsl malloc_count)
 #target_compile_options(pfp_suffixient64 PUBLIC -DM64)
 
-add_executable(one-pass-lcs one_pass_lcs.cpp)
-target_link_libraries(one-pass-lcs sdsl divsufsort divsufsort64)
+add_executable(one-pass-index one_pass_index.cpp)
+target_link_libraries(one-pass-index sdsl divsufsort divsufsort64)
 
 add_executable(suffixient linear_time.cpp)
 target_link_libraries(suffixient sdsl divsufsort divsufsort64)

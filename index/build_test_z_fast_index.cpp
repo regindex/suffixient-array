@@ -9,7 +9,7 @@
 
 using namespace std;
 
-#include "suffixient_index.hpp"
+#include "suffixient_zfast_index.hpp"
 
 void help(){
 

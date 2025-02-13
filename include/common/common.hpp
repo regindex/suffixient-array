@@ -29,6 +29,8 @@ typedef uint8_t uchar_t;
 
 #define DEF_BUFFER_SIZE 5000
 #define SIGMA 128
+#define SIGMA_DNA 4
+#define STORE_SIZE 5
 
 static unsigned char dna_to_code_table[128] = {
     4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
@@ -55,12 +57,33 @@ inline bool_t contained(safe_t s1, safe_t e1, safe_t s2, safe_t e2)
     return false;
 }
 
-void inline set_uint_DNA(uchar_t* t, std::string p, uchar_t size)
+void inline set_uint_DNA(uchar_t* t, std::string p)
 {
-    size /= 8;
+    uchar_t bytes = ((p.size()-1)/4); // size = (2-1)/4 = 0
+    uchar_t offset = 4-(p.size()%4);
 	for(uint_t i=0;i<p.size();++i)
-		t[3-(i/4)] |= 
-		bit_mask_table[(dna_to_code_table[p[i]]*4)+(i%4)];
+		t[bytes-(i/4)] |= 
+		bit_mask_table[(dna_to_code_table[p[i]]*4)+((offset+i)%4)];
+}
+
+void inline set_uint_DNA_inv(uchar_t* t, std::string& p)
+{
+    uchar_t size = p.size(); 
+    uchar_t offset = 4-(size%4); 
+    for(uint_t i=0;i<size;++i)
+        t[((size-i-1)/4)] |= 
+        bit_mask_table[(dna_to_code_table[p[size-i-1]]*4)+((offset+i)%4)];
+}
+
+void inline set_uint_DNA_inv(uchar_t* t, std::string& p, uchar_t len, 
+                                            uint_t beg, uchar_t plen)
+{
+    assert(plen <= len);
+    uchar_t size = len; 
+    uchar_t offset = 4-(size%4);
+    for(uint_t i=0;i<plen;++i)
+        t[((size-i-1)/4)] |= 
+        bit_mask_table[(dna_to_code_table[p[beg+plen-i-1]]*4)+((offset+i)%4)];
 }
 
 usafe_t get_5bytes_uint(uchar_t *a, uint_t i=0)
@@ -70,6 +93,12 @@ usafe_t get_5bytes_uint(uchar_t *a, uint_t i=0)
   for(uint_t j=0;j<5;j++) ai = (ai << 8) | a[offset-j];
     
   return ai;
+}
+
+uint8_t bitsize(usafe_t x)
+{
+    if(x == 0) return 1;
+    return 64 - __builtin_clzll(x);
 }
 
 template<typename T>

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+## DA MODIFICARE! AGGIUNGENDO INDICE BASATO SU SUFFIXIENT ARRAY
+
 import sys, time, argparse, subprocess, os.path, threading
 
 Description = """
@@ -23,7 +25,7 @@ pfbwtNT_exe     = os.path.join(bigbwt_dirname, "pfbwtNT.x")
 pfbwt_exe64     = os.path.join(bigbwt_dirname, "pfbwt64.x")
 pfbwtNT_exe64   = os.path.join(bigbwt_dirname, "pfbwtNT64.x")
 suffixient_exe  = os.path.join(tools_dirname,  "pfp_suffixient")
-one_pass_exe    = os.path.join(tools_dirname,  "one-pass-lcs")
+one_pass_exe    = os.path.join(tools_dirname,  "one-pass-index")
 test_index_exe  = os.path.join(index_dirname,  "build_test_index")
 
 def main():
@@ -123,7 +125,7 @@ def main():
     with open(logfile_name,"a") as logfile:
       start0 = start = time.time()
       command = "{exe} -o {output}".format(
-              exe = os.path.join(dirname,"sources/one-pass-lcs"),
+              exe = os.path.join(dirname,"sources/one-pass-index"),
               output=args.input)
 
       if args.mems:
@@ -141,7 +143,7 @@ def main():
       start = time.time()
       command = "{exe} -t {input} -s {suff_set} -l {suff_lcs} -p {patterns}".format(
                 exe=test_index_exe, input=args.input, suff_set=args.input+".suff",
-                suff_lcs=args.input+".lcs", patterns=args.mems)
+                suff_lcs=args.input+".lens", patterns=args.mems)
       print("==== Suffixient index construction and MEMs testing. Command:", command)
       if(execute_command(command,logfile,logfile_name)!=True):
         return

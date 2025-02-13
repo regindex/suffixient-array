@@ -6,6 +6,8 @@
  *  suffixient_index: DESCRIPTION
  */
 
+// Z-FAST TRIE SUFFIXIENT INDEX BASED IMPLEMENTATION
+
 #ifndef SUFFIXIENT_INDEX_HPP_
 #define SUFFIXIENT_INDEX_HPP_
 
@@ -96,9 +98,9 @@ public:
 
 	// build suffixient index by indexing the supermaximal extensions
 	std::pair<safe_t,safe_t> build(const std::string &text, const std::string &suffixient,
-		                         		   const std::string &lcs, bool verbose = false)
+		                         		     const std::string &lcs, bool verbose = false)
 	{
-		// BEUILD LCP LCS DATA STRUCTURE //
+		// BUILD LCP LCS DATA STRUCTURE //
 		std::cout << "Constructing LCP/LCS data structure for " << text << std::endl;
 	    G.build(text);
 		// BUILD PREFIX-SEARCH DATA STRUCTURE //

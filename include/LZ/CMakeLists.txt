@@ -19,6 +19,8 @@ set(SOURCE_FILES
     lz77index/static_bitsequence.cpp
     lz77index/static_bitsequence_brw32.cpp
     lz77index/static_bitsequence_builder_brw32.cpp
+    lz77index/static_compressed_text.cpp
+    lz77index/static_compressed_text_lz77.cpp
     lz77index/static_permutation.cpp
     lz77index/static_permutation_mrrr.cpp
     lz77index/RMQ.cpp
