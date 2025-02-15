@@ -48,6 +48,12 @@ class static_compressed_text_lz77 : public static_compressed_text {
         /** Loads the index from a file */
         static static_compressed_text_lz77* load(FILE * fp);
         static static_compressed_text_lz77* build(char* filename, char* filenameidx, unsigned char binaryRev, unsigned char binarySst, unsigned char store_sst_ids);
+        unsigned char extract( unsigned i );
+
+        size_t LCP( const std::string& P, size_t p_i, size_t t_j );
+        size_t LCS( const std::string& P, size_t p_i, size_t t_j );
+        std::pair<size_t,unsigned char> LCS_char( const std::string& P, size_t p_i, size_t t_j );
+
     protected:
         /** Returns the substring of the text in a new allocated array*/
         unsigned char* _display(unsigned int start, unsigned int end);
@@ -59,6 +65,10 @@ class static_compressed_text_lz77 : public static_compressed_text {
         int _source(unsigned int i);        
         /** returns the length of a source*/
         unsigned int _source_length(unsigned int i);
+
+        /** additionally implemented member functions **/
+        size_t m_find_mismatch_forward( const std::string& P, size_t p_i, size_t start, size_t end );
+        std::pair<size_t, unsigned char> m_find_matchspan_backward( const std::string& P, size_t p_i, size_t start, size_t end );
 
         /** instance variables*/
         unsigned int parsing_len;

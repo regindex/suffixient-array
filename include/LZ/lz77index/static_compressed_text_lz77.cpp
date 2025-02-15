@@ -1,6 +1,7 @@
 #include "static_compressed_text_lz77.h"
 
 #include <algorithm>
+#include <string>
 
 #include "utils.h"
 #include "utils_index.h"
@@ -16,11 +17,9 @@ static const int DELTA_SAMP = 16;
 static const int PERM_EPS = 8;
 static const int BITM_STEP = 20;
 
-#include <string>
 namespace lz77index{
 static_compressed_text_lz77* static_compressed_text_lz77::build(char* filename, char* filenameidx, unsigned char binaryRev, unsigned char binarySst, unsigned char store_sst_ids){
 
-    unsigned char bits;
     std::string sfile = std::string((char*)filename);
     std::cout<<"Building the index to file "<<filenameidx<<std::endl;
 
@@ -336,6 +335,121 @@ void static_compressed_text_lz77::_charextractLZ77(unsigned char* answer, unsign
                 }else{
                     return;
                 }
+            }
+        }
+    }
+}
+size_t static_compressed_text_lz77::LCP( const std::string& P, size_t p_i, size_t t_j ){
+    size_t n = length()-1;
+    if( t_j >= n ) return 0;
+    if( p_i >= P.size() ) return 0;
+    size_t p_first_mismatch = m_find_mismatch_forward( P, p_i, t_j, n-1 );
+    return p_first_mismatch - p_i;
+}
+
+size_t static_compressed_text_lz77::LCS( const std::string& P, size_t p_i, size_t t_j ){
+    size_t n = length()-1;
+    if( t_j >= n ) return 0;
+    if( p_i >= P.size() ) return 0;
+    std::pair<size_t,unsigned char> ret = m_find_matchspan_backward( P, p_i, 0, t_j );
+    size_t p_last_match = ret.first;
+    return p_i+1 - p_last_match;
+}
+
+std::pair<size_t, unsigned char> static_compressed_text_lz77::LCS_char( const std::string& P, size_t p_i, size_t t_j ){
+    size_t n = length()-1;
+    if( t_j >= n ) return std::make_pair(0,(unsigned char)-1);
+    if( p_i >= P.size() ) return std::make_pair(0,(unsigned char)-1);
+    std::pair<size_t,unsigned char> ret = m_find_matchspan_backward( P, p_i, 0, t_j );
+    size_t p_last_match = ret.first;
+    return std::make_pair( p_i+1 - p_last_match, ret.second );
+}
+
+unsigned char static_compressed_text_lz77::extract( unsigned i ) { 
+    while(1) {
+        unsigned int last_phrase = 0;
+        unsigned int r = this->phrases->rank_select(i,&last_phrase);
+        if(last_phrase == i){
+            return sigma_mapper->unmapchar( basics::get_field(this->trailing_char,this->trailing_char_bits,r-1)+1 ); //the array doesnt store the 0
+        }else{
+            unsigned int source = _source(r);
+            i = source + (i - last_phrase) -1;
+        }
+    }
+}
+
+size_t static_compressed_text_lz77::m_find_mismatch_forward( const std::string& P, size_t p_i, size_t start, size_t end ){
+    while( p_i < P.size() ){//start<=end
+        unsigned int last_phrase = 0;
+        unsigned int r = this->phrases->rank_select(start,&last_phrase);
+        if(last_phrase == start){
+            char c = sigma_mapper->unmapchar( basics::get_field(this->trailing_char,this->trailing_char_bits,r-1)+1 ); //the array doesnt store the 0
+            if( c != P[p_i] ) return p_i;
+            p_i++;
+            if(start<end){
+                start ++;
+            }else{
+                return p_i;
+            }
+        }else{
+            unsigned int source = _source(r);
+            unsigned int next_phrase = this->phrases->select(r+1);
+            if(end < next_phrase ){
+                start = source + (start - last_phrase) -1;
+                end = source + (end - last_phrase) -1;
+                
+            }else{
+                size_t p_i_ = m_find_mismatch_forward( P, p_i, source + (start - last_phrase) - 1, source + (next_phrase - last_phrase) - 2 );
+                if( p_i_ - p_i < next_phrase - start ) return p_i_;
+                p_i = p_i_;
+
+                char c = sigma_mapper->unmapchar( basics::get_field(this->trailing_char,this->trailing_char_bits,r)+1 );//the array doesnt store the 0
+                if( c != P[p_i] ) return p_i;
+                p_i++;
+                if( end > next_phrase){
+                    start = next_phrase+1;
+                }else{
+                    return p_i;
+                }
+            }
+        }
+    }
+    return p_i;
+}
+
+std::pair<size_t,unsigned char> static_compressed_text_lz77::m_find_matchspan_backward( const std::string& P, size_t p_i, size_t start, size_t end ){
+    while(1){//start<=end
+        unsigned int last_phrase = 0;
+        unsigned int r = this->phrases->rank_select(end,&last_phrase);
+        if(last_phrase == end){
+            char c = sigma_mapper->unmapchar( basics::get_field(this->trailing_char,this->trailing_char_bits,r-1)+1 ); //the array doesnt store the 0
+            if( P[p_i] != c ) return std::make_pair( p_i+1, (unsigned char)c );
+
+            if(start>=end || p_i == 0 ) {
+                return std::make_pair( p_i, (unsigned char)-1 );
+            }
+            end--;
+            p_i--;
+        }else{
+            unsigned int source = _source(r);
+            if(start>last_phrase){
+                start = source + (start - last_phrase) -1;
+                end = source + (end - last_phrase) -1;
+                
+            }else{
+                std::pair<size_t, unsigned char> ret_ = m_find_matchspan_backward( P, p_i, source, source + (end - last_phrase) -1 );
+                size_t p_i_ = ret_.first;
+                if( p_i_ == 0 || p_i+1 - p_i_ < end - last_phrase ) return ret_;
+                p_i = p_i_-1;
+
+                char c = sigma_mapper->unmapchar( basics::get_field(this->trailing_char,this->trailing_char_bits,r-1)+1 );//the array doesnt store the 0
+                if( P[p_i] != c ) return std::make_pair( p_i + 1, (unsigned char) c );
+
+                if(start>=last_phrase || p_i == 0 ) {
+                    return std::make_pair( p_i, (unsigned char)-1 );
+                }
+                end = last_phrase - 1;
+                p_i --;
             }
         }
     }
