@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include <malloc_count.h>
+
 #include "internal/r_index.hpp"
 
 #include "internal/utils.hpp"
@@ -115,6 +117,8 @@ void locate(std::ifstream& in, string patterns){
 	size_t i = 0;
 	double tot_duration = 0;
 
+	malloc_count_reset_peak();
+
 	while(std::getline(ifs, line))
 	{
 		if(i%2 != 0)
@@ -137,9 +141,9 @@ void locate(std::ifstream& in, string patterns){
 
 	auto t3 = high_resolution_clock::now();
 
-	//std::cout << "Memory peak while running pattern matching queries = " <<
-	//	     malloc_count_peak() << " bytes" << std::endl
-    std::cout << "Elapsed time while running pattern matching queries = " <<
+	std::cout << "Memory peak while running pattern matching queries = " <<
+		     malloc_count_peak() << " bytes" << std::endl
+              << "Elapsed time while running pattern matching queries = " <<
 		         tot_duration << " sec" << std::endl
          	  << "Number of patterns = " << i/2 
  		  	  << ", Total number of characters = " << ca << std::endl

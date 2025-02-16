@@ -15,3 +15,6 @@ target_include_directories(bitvectors PUBLIC bitvectors)
 
 add_subdirectory(suffixient_array)
 target_include_directories(suffixient_array PUBLIC suffixient_array)
+
+add_subdirectory(Hk)
+target_include_directories(Hk PUBLIC Hk)

@@ -100,7 +100,8 @@ public:
 
 		out.write((char*)&N, sizeof(N));
 		out.write((char*)&S, sizeof(S));
-		w_bytes += sizeof(N) + sizeof(S);
+		out.write((char*)&len, sizeof(len));
+		w_bytes += sizeof(N) + sizeof(S) + sizeof(len);
 
 		w_bytes += Suff.serialize(out);
 		w_bytes += alph.serialize(out);
@@ -113,6 +114,7 @@ public:
 		O = O_;
 		in.read((char*)&N, sizeof(N));
 		in.read((char*)&S, sizeof(S));
+		in.read((char*)&len, sizeof(len));
 
 		Suff.load(in);
 		alph.load(in);

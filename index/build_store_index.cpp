@@ -8,7 +8,6 @@
 
 int_t compute_stored_strings_length(std::string inputPath, uint_t addSpace)
 {
-
     std::ifstream file_text(inputPath, std::ios::binary);
     file_text.seekg(0, std::ios::end);
     usafe_t N = file_text.tellg();
@@ -48,6 +47,7 @@ template<class indexType, class oracleType>
 void construct_store_index(std::string inputPath, std::string indexPath,
                                                      int_t addSpace = 0)
 {
+    /*
     int_t storedLen = 0;
     if(addSpace > 0){
         storedLen = compute_stored_strings_length(inputPath, addSpace);
@@ -55,6 +55,8 @@ void construct_store_index(std::string inputPath, std::string indexPath,
                   << " the suffixient positions" << std::endl; 
     }
     else{ storedLen = 10; }
+    */
+    int_t storedLen = 14;
 
     std::cout << "Contructing and storing the suffixient index to " 
               << indexPath << std::endl;
@@ -75,7 +77,7 @@ void help(){
     "-h          Print usage info." << endl <<
     "-i <arg>    Input files base path. Default: Empty." << endl <<
     "-t <arg>    Index type (baseline|elias-fano|prefix-array). Default: baseline." << endl << 
-    "-o <arg>    Text oracle (plain|lz77). Default: lz77." << endl << 
+    "-o <arg>    Text oracle (plain|lz77|Hk). Default: lz77." << endl << 
     "-l <arg>    Maximum additional space (percentage) on top of the suffixient array. Default: 10%." << endl << 
     "-v          Activate verbosity mode. Default: false." << endl;
     exit(0);
@@ -136,35 +138,63 @@ int main(int argc, char* argv[])
          suffixient::uncompressed_text_oracle>
         (inputPath,inputPath+".bai");
     }
+    else if(indexType == "baseline" and oracleType == "Hk")
+    {
+        construct_store_index
+        <suffixient::suffixient_array_baseline<Hk_Ferragina_Venturini<>>,
+         Hk_Ferragina_Venturini<>>
+        (inputPath,inputPath+".bai");
+    }
     else if(indexType == "prefix-array" and oracleType == "lz77")
     {
         construct_store_index
         <suffixient::suffix_array_binary_search<lz77::LZ77_compressed_text>,
                lz77::LZ77_compressed_text>
-        (inputPath,inputPath+".sai");
+        (inputPath,inputPath+".pai");
     }
     else if(indexType == "prefix-array" and oracleType == "plain")
     {
         construct_store_index
         <suffixient::suffix_array_binary_search<suffixient::uncompressed_text_oracle>,
          suffixient::uncompressed_text_oracle>
-        (inputPath,inputPath+".sai");
+        (inputPath,inputPath+".pai");
+    }
+    else if(indexType == "prefix-array" and oracleType == "Hk")
+    {
+        construct_store_index
+        <suffixient::suffix_array_binary_search<Hk_Ferragina_Venturini<>>,
+         Hk_Ferragina_Venturini<>>
+        (inputPath,inputPath+".pai");
     }
     else if(indexType == "elias-fano" and oracleType == "lz77")
     {
+        //std::string extension = "." + std::to_string(additional_space) + "efi";
+        std::string extension = ".efi";
         construct_store_index
         <suffixient::suffixient_array_elias_fano<lz77::LZ77_compressed_text,
                      suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
                      lz77::LZ77_compressed_text>
-        (inputPath,inputPath+".efi",additional_space);
+        (inputPath,inputPath+extension,additional_space);
     }
     else if(indexType == "elias-fano" and oracleType == "plain")
     {
+        //std::string extension = "." + std::to_string(additional_space) + "efi";
+        std::string extension = ".efi";
         construct_store_index
         <suffixient::suffixient_array_elias_fano<suffixient::uncompressed_text_oracle,
                      suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
                      suffixient::uncompressed_text_oracle>
-        (inputPath,inputPath+".efi",additional_space);
+        (inputPath,inputPath+extension,additional_space);
+    }
+    else if(indexType == "elias-fano" and oracleType == "Hk")
+    {
+        //std::string extension = "." + std::to_string(additional_space) + "efi";
+        std::string extension = ".efi";
+        construct_store_index
+        <suffixient::suffixient_array_elias_fano<Hk_Ferragina_Venturini<>,
+                     suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
+                     Hk_Ferragina_Venturini<>>
+        (inputPath,inputPath+extension,additional_space);
     }
     else{
         std::cout << "Not yet implemented..." << std::endl;

@@ -98,7 +98,7 @@ public:
 
 	// build suffixient index by indexing the supermaximal extensions
 	std::pair<safe_t,safe_t> build(const std::string &text, const std::string &suffixient,
-		                         		     const std::string &lcs, bool verbose = false)
+		                         		   const std::string &lcs, bool verbose = false)
 	{
 		// BUILD LCP LCS DATA STRUCTURE //
 		std::cout << "Constructing LCP/LCS data structure for " << text << std::endl;

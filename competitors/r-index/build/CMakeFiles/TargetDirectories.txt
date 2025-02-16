@@ -1,4 +1,0 @@
-/Users/davidecenzato/Desktop/suffixient-index/competitors/r-index/build/CMakeFiles/ri-build.dir
-/Users/davidecenzato/Desktop/suffixient-index/competitors/r-index/build/CMakeFiles/ri-locate.dir
-/Users/davidecenzato/Desktop/suffixient-index/competitors/r-index/build/CMakeFiles/edit_cache.dir
-/Users/davidecenzato/Desktop/suffixient-index/competitors/r-index/build/CMakeFiles/rebuild_cache.dir

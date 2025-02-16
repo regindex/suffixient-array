@@ -18,7 +18,11 @@
 // suffix array data structure
 #include <suffix_array_binary_search.hpp>
 // Text oracle data structure
-#include <LZ77_compressed_text.hpp>
+//#include <LZ77_compressed_text.hpp>
+#include <LZ77_compressed_text-modified.hpp>
+//#include <static_compressed_text.h>
+// K-order entropy compressed text oracle
+#include <Hk_Ferragina_Venturini.hpp>
 // Uncompressed text oracle data structure
 #include <uncompressed_text_oracle.hpp>
 
@@ -54,7 +58,6 @@ public:
 		out.close();
 
 		return w_bytes;
-
 	}
 
 	void load(const std::string &oracle_filepath, 
@@ -162,7 +165,7 @@ public:
 	std::pair<safe_t,double> locate_one_occurrence_heuristic(std::string pattern)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
-
+		//std::cout << "Len = " << S.get_len() << std::endl;
 		usafe_t occ = -1, m = pattern.size(), 
 		                  i = std::min(S.get_len(),static_cast<int_t>(m));
 		bool_t mismatch_found;

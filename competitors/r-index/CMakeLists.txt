@@ -13,8 +13,11 @@ project (s-rlbwt)
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/internal)
 include_directories(/usr/local/include) #SDSL headers are here
+include_directories(malloc_count)
 
 LINK_DIRECTORIES(/usr/local/lib) #SDSL lib are here
+
+add_subdirectory(malloc_count)
 
 message("Building in ${CMAKE_BUILD_TYPE} mode")
 
@@ -33,6 +36,7 @@ TARGET_LINK_LIBRARIES(ri-build divsufsort)
 TARGET_LINK_LIBRARIES(ri-build divsufsort64)
 
 add_executable(ri-locate ri-locate.cpp)
+TARGET_LINK_LIBRARIES(ri-locate malloc_count)
 TARGET_LINK_LIBRARIES(ri-locate sdsl)
 TARGET_LINK_LIBRARIES(ri-locate divsufsort)
 TARGET_LINK_LIBRARIES(ri-locate divsufsort64)
