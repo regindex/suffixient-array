@@ -29,6 +29,31 @@ void load_index_locate(std::string textPath,
         suff_index.run_exact_pattern_matching_fasta(patternPath,prefixArraySearch,runPrefixHeuristic); 
 }
 
+template<class indexType, class oracleType>
+void load_index_locate_bitpacked(std::string textPath, 
+                                 std::string indexPath, std::string patternPath,
+                                 bool_t prefixArraySearch = false,
+                                 bool_t check_correctness = false,
+                                 bool_t runPrefixHeuristic = false)
+{
+    // initialize the index
+    suffixient::suffixient_sA_index
+            <indexType,oracleType> suff_index;
+    // construct baseline index
+    std::cout << "Loading the suffixient index from " 
+              << indexPath << std::endl;
+    suff_index.load(textPath,indexPath);
+    std::cout << "Locating the patterns in " 
+              << indexPath << std::endl;
+
+    if(check_correctness)
+        suff_index.check_exact_pattern_matching_correctness_bitpacked(
+                    patternPath,prefixArraySearch,runPrefixHeuristic);
+    else
+        suff_index.run_exact_pattern_matching_fasta_bitpacked(
+                    patternPath,prefixArraySearch,runPrefixHeuristic); 
+}
+
 void help(){
 
     cout << "locate [options]" << endl <<
@@ -36,7 +61,7 @@ void help(){
     "-h          Print usage info." << endl <<
     "-i <arg>    Index files base path. Default: Empty." << endl <<
     "-t <arg>    Index type (baseline|elias-fano|prefix-array). Default: baseline." << endl << 
-    "-o <arg>    Text oracle (plain|lz77|Hk). Default: lz77." << endl << 
+    "-o <arg>    Text oracle (plain|bitpacked|lz77|Hk). Default: lz77." << endl << 
     "-p <arg>    Fasta file path containing the patterns to locate. Default: Empty." << endl <<
     "-c          Check output correctness. Default: False." << endl << 
     "-v          Activate verbosity mode. Default: false." << endl;
@@ -100,6 +125,14 @@ int main(int argc, char* argv[])
          suffixient::uncompressed_text_oracle>
         (inputPath,inputPath+".bai",patternFile,false,correctness,true);
     }
+    else if(indexType == "baseline" and oracleType == "bitpacked")
+    {
+        //load_index_locate_bitpacked
+        load_index_locate
+        <suffixient::suffixient_array_baseline<suffixient::bitpacked_text_oracle>,
+         suffixient::bitpacked_text_oracle>
+        (inputPath,inputPath+".bai",patternFile,false,correctness,true);
+    }
     else if(indexType == "baseline" and oracleType == "Hk")
     {
         load_index_locate
@@ -119,6 +152,14 @@ int main(int argc, char* argv[])
         load_index_locate
         <suffixient::suffix_array_binary_search<suffixient::uncompressed_text_oracle>,
          suffixient::uncompressed_text_oracle>
+        (inputPath,inputPath+".pai",patternFile,true,correctness);
+    }
+    else if(indexType == "prefix-array" and oracleType == "bitpacked")
+    {
+        //load_index_locate_bitpacked
+        load_index_locate
+        <suffixient::suffix_array_binary_search<suffixient::bitpacked_text_oracle>,
+         suffixient::bitpacked_text_oracle>
         (inputPath,inputPath+".pai",patternFile,true,correctness);
     }
     else if(indexType == "prefix-array" and oracleType == "Hk")
@@ -142,6 +183,15 @@ int main(int argc, char* argv[])
         <suffixient::suffixient_array_elias_fano<suffixient::uncompressed_text_oracle,
                      suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
                      suffixient::uncompressed_text_oracle>
+        (inputPath,inputPath+".efi",patternFile,false,correctness,true);
+    }
+    else if(indexType == "elias-fano" and oracleType == "bitpacked")
+    {
+        //load_index_locate_bitpacked
+        load_index_locate
+        <suffixient::suffixient_array_elias_fano<suffixient::bitpacked_text_oracle,
+                     suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
+                     suffixient::bitpacked_text_oracle>
         (inputPath,inputPath+".efi",patternFile,false,correctness,true);
     }
     else if(indexType == "elias-fano" and oracleType == "Hk")

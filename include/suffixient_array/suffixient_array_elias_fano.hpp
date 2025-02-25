@@ -217,7 +217,10 @@ public:
 
 		set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&search), pattern, this->len, 
                                             		    pend-to_match, to_match);
+		//std::cout << "search = " << search << " - " << pstart << " - " << pend << std::endl;
 		uint_t r = ef.rank1(search+1);
+
+		//std::cout << "r " << r << std::endl;
 
 		if(r == 0)
 		{
@@ -271,6 +274,8 @@ public:
 			low  = bv.select(r);
 			high = bv.select(r+1);
 
+			//std::cout << "low " << low << " high " << high << std::endl;
+
 			// stop if first pattern character doesn't occur in the text
 			if((high - low) > 0)
 			{ 
@@ -292,6 +297,119 @@ public:
 					return std::make_tuple(this->Suff[mid],plen,false); 		
 
 				if(j.second > pattern[pend-j.first-1]){
+					high = mid;
+					lcp_high = j.first;
+				}
+				else{
+					low = mid;
+					lcp_low = j.first;
+				}
+				mid = (low+high)/2;
+			}
+
+			if(lcp_low  == -1){ lcp_low  = O->LCS_char(pattern,pend-1,Suff[low]).first; }
+			if(lcp_high == -1){ lcp_high = O->LCS_char(pattern,pend-1,Suff[high]).first;}
+
+			if(lcp_low >= lcp_high){
+				mid = low;
+				lcp_mid = lcp_low;
+			}
+			else{
+				mid = high;
+				lcp_mid = lcp_high;
+			}
+
+			return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
+		}
+	}
+
+	std::tuple<uint_t,uint_t,bool_t> 
+		locate_longest_prefix(sdsl::int_vector<2>& pattern,uint_t pstart,uint_t pend) const
+	{
+		uint_t search = 0;
+		uint_t plen = pend-pstart;
+		uint_t to_match = std::min(static_cast<uint_t>(this->len),plen);
+		uint_t mlen = 0;
+
+
+		//set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&search), pattern, this->len, 
+        //                                    		    pend-to_match, to_match);
+
+		search = pattern.get_int((pend-to_match)*2,to_match*2);
+		//if( ((this->len - to_match)*2) > 0  )
+			search <<= (this->len - to_match)*2;
+
+		//std::cout << "search = " << search << " - " << pstart << " - " << pend << std::endl;
+		//exit(1);
+
+		//set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&search), pattern, this->len, 
+        //                                    		    pend-to_match, to_match);
+		uint_t r = ef.rank1(search+1);
+
+		//std::cout << "r " << r << std::endl;
+
+		if(r == 0)
+		{
+			uint_t s1 = ef.select1(r);
+			mlen = (__builtin_clz(search ^ s1)-((sizeof(uint_t)*8)-(this->len*2)))/2;
+		}
+		else if(r == ef.no_ones())
+		{
+			r--;
+			uint_t s1 = ef.select1(r);
+			mlen = (__builtin_clz(search ^ s1)-((sizeof(uint_t)*8)-(this->len*2)))/2;
+		}
+		else
+		{
+			uint_t s1 = ef.select1(r-1);
+			if(search == s1){ r--; mlen = to_match; }
+			else
+			{
+				uint_t s2 = ef.select1(r);
+				int_t m1 = __builtin_clz(search ^ s1), m2 = __builtin_clz(search ^ s2);
+
+				if(m1 > m2)
+				{
+					r--;
+					mlen = (m1 - ((sizeof(uint_t)*8)-(this->len*2)))/2;
+				}
+				else{ mlen = (m2 - ((sizeof(uint_t)*8)-(this->len*2)))/2; }
+			}
+		}
+
+		if(mlen < to_match){ return std::make_tuple(this->Suff[bv.select(r)],mlen,true); }
+		else if(plen == to_match){ return std::make_tuple(this->Suff[bv.select(r)],to_match,false); }
+		else
+		{
+			//std::cout << "ENTRA NELLA BINARY SEARCH" << std::endl;
+			uint_t low, mid, high;
+			int_t lcp_low, lcp_high, lcp_mid;
+			low  = bv.select(r);
+			high = bv.select(r+1);
+
+			// stop if first pattern character doesn't occur in the text
+			if((high - low) > 0)
+			{ 
+				high--;
+				lcp_low = lcp_high = -1; 
+				mid = (low+high)/2;
+				if(plen == 1)
+					return std::make_tuple(this->Suff[mid],1,false);
+			}
+			else
+				return std::make_tuple(-1,0,true);
+
+			//std::cout << "low " << low << " high " << high << std::endl;
+
+			while( high-low > 1 )
+			{			
+				auto j = O->LCS_char(pattern,pend-1,this->Suff[mid]);
+				//std::cout << "--> " << j.first << " | " << j.second << std::endl; 
+		
+				if(j.first == plen)
+					return std::make_tuple(this->Suff[mid],plen,false); 		
+
+				if(j.second > code_to_dna_table[pattern[pend-j.first-1]]){
 					high = mid;
 					lcp_high = j.first;
 				}

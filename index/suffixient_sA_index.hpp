@@ -25,6 +25,8 @@
 #include <Hk_Ferragina_Venturini.hpp>
 // Uncompressed text oracle data structure
 #include <uncompressed_text_oracle.hpp>
+// Bitpacked text oracle data structure
+#include <bitpacked_text_oracle.hpp>
 
 namespace suffixient{
 
@@ -133,7 +135,8 @@ public:
 		}
 	}
 
-	std::pair<usafe_t,double> locate_one_occurrence(std::string pattern)
+	template<typename stype>
+	std::pair<usafe_t,double> locate_one_occurrence(stype pattern)
 	{
 		//std::cout << "#### LOCATING " << pattern << std::endl;
 		auto start = std::chrono::high_resolution_clock::now();
@@ -162,16 +165,18 @@ public:
 		return std::make_pair(occ-m+1,duration.count());
 	}
 
-	std::pair<safe_t,double> locate_one_occurrence_heuristic(std::string pattern)
+	template<typename stype>
+	std::pair<safe_t,double> locate_one_occurrence_heuristic(stype pattern)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
-		//std::cout << "Len = " << S.get_len() << std::endl;
+
 		usafe_t occ = -1, m = pattern.size(), 
 		                  i = std::min(S.get_len(),static_cast<int_t>(m));
 		bool_t mismatch_found;
 
 		while(i > 0)
 		{
+			//std::cout << "i= "<< i << std::endl;
 			auto j = this->S.locate_longest_prefix(pattern,0,i);
 			mismatch_found = std::get<2>(j);
 			if(not mismatch_found)
@@ -190,7 +195,9 @@ public:
 
 		while(i-1 < m)
 		{
+			//std::cout << "I= " << i << std::endl;
 			auto j = this->S.locate_longest_prefix(pattern,0,i);
+			//std::cout << std::get<0>(j) << " " << std::get<1>(j) << " " << std::get<2>(j) << std::endl;
 			mismatch_found = std::get<2>(j);
 
 			if(mismatch_found)
@@ -208,7 +215,8 @@ public:
 		return std::make_pair(occ-m+1,duration.count());
 	}
 
-	std::pair<usafe_t,double> locate_longest_prefix(std::string prefix)
+	template<typename stype>
+	std::pair<usafe_t,double> locate_longest_prefix(stype prefix)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 
@@ -218,13 +226,6 @@ public:
 				std::chrono::high_resolution_clock::now() - start;
 
 		return std::make_pair(std::get<0>(j)-prefix.size()+1,duration.count());
-	}
-
-	std::pair<usafe_t,usafe_t> locate_longest_prefix_(std::string prefix)
-	{
-		auto j = this->S.locate_longest_prefix(prefix,0,prefix.size());
-
-		return std::make_pair(std::get<0>(j)-prefix.size()+1,std::get<1>(j));
 	}
 
 	void locate_MEMs_fasta(std::string patternFile)
@@ -290,10 +291,70 @@ public:
 		{
 			if(i%2 != 0)
 			{
-				if(prefixArray){ o = locate_longest_prefix(line); }
-				else if(runHeuristic){ o = locate_one_occurrence_heuristic(line); }
-				else{ o = locate_one_occurrence(line); }
+				if(prefixArray){ o = locate_longest_prefix<std::string>(line); }
+				else if(runHeuristic)
+					{ o = locate_one_occurrence_heuristic<std::string>(line); }
+				else{ o = locate_one_occurrence<std::string>(line); }
 
+				output << header << std::endl;
+				if(o.first >= 0){ output << o.first << " " << line.size() << std::endl; }
+				else{ output << "-1 " << line.size() << std::endl; }
+
+				tot_duration += o.second;
+				c += line.size();
+			}
+			else{ header = line; }
+			i++;
+		}
+
+		patterns.close();
+		output.close();
+
+		std::cout << "Memory peak while running pattern matching queries = " <<
+				     malloc_count_peak() << " bytes" << std::endl
+		          << "Elapsed time while running pattern matching queries = " <<
+				     tot_duration << " sec" << std::endl
+		          << "Number of patterns = " << i/2 
+		 		  << ", Total number of characters = " << c << std::endl
+		          << "Elapsed time per pattern = " <<
+				     (tot_duration/(i/2))*1000 << " milliSec" << std::endl
+		          << "Elapsed time per character = " <<
+				     (tot_duration/(c))*1000000 << " microSec" << std::endl;
+	}
+
+	void run_exact_pattern_matching_fasta_bitpacked(
+				 		  std::string patternFile, bool_t prefixArray  = false,
+				                                   bool_t runHeuristic = false)
+	{
+		std::ifstream patterns(patternFile);
+		std::ofstream   output(patternFile+".exactPM");
+
+		std::string line, header;
+		usafe_t i=0, c=0;
+		std::pair<safe_t,double> o;
+		double tot_duration = 0;
+
+		malloc_count_reset_peak();
+
+		while(std::getline(patterns, line))
+		{
+			if(i%2 != 0)
+			{
+				sdsl::int_vector<2> patt(line.size(),0);
+				auto start = std::chrono::high_resolution_clock::now();
+
+				for(usafe_t j=0;j<line.size();++j)
+					{ patt[j] = dna_to_code_table[line[j]]; }
+
+				std::chrono::duration<double> duration = 
+					 std::chrono::high_resolution_clock::now() - start;
+				tot_duration += duration.count();
+
+				if(prefixArray){ o = locate_longest_prefix<sdsl::int_vector<2>>(patt); }
+				else if(runHeuristic)
+					{ o = locate_one_occurrence_heuristic<sdsl::int_vector<2>>(patt); }
+				else{ o = locate_one_occurrence<sdsl::int_vector<2>>(patt); }
+				//std::cout << "o = " << o.first << std::endl;
 				output << header << std::endl;
 				if(o.first >= 0){ output << o.first << " " << line.size() << std::endl; }
 				else{ output << "-1 " << line.size() << std::endl; }
@@ -333,10 +394,11 @@ public:
 		{
 			if(i%2 != 0)
 			{
-				if(prefixArray){ o = locate_longest_prefix(line).first; }
-				else if(runHeuristic){ o = locate_one_occurrence_heuristic(line).first; }
-				else{ o = locate_one_occurrence(line).first; }
-
+				if(prefixArray){ o = locate_longest_prefix<std::string>(line).first; }
+				else if(runHeuristic)
+					{ o = locate_one_occurrence_heuristic<std::string>(line).first; }
+				else{ o = locate_one_occurrence<std::string>(line).first; }
+				//std::cout << "o = " << o << std::endl;
 				// check occurrence correctness
 				if((o <= -1) or (O.LCP(line,0,o) != line.size()))
 				{
@@ -344,6 +406,48 @@ public:
 					          << " not found!" << std::endl;
 					return false;
 				}
+			}
+			i++;   
+			//if(line == "TGAACCTGGGAGGCAGAGGTTGTGGTGAGCCGAGATCACACCACTGCACTCCAGCATGGGTGACAGAGCGAGAATCTGTCCCCCAAAAAAAAAAAAAATC") exit(1);
+		}
+
+		patterns.close();
+
+		std::cout << "Everything's fine!" << std::endl;
+		return true;
+	}
+
+	bool_t check_exact_pattern_matching_correctness_bitpacked(
+						 std::string patternFile, bool_t prefixArray  = false,
+						 						  bool_t runHeuristic = false)
+	{
+		std::ifstream patterns(patternFile);
+
+		std::string line;
+		safe_t i=0, o=0;
+
+		while(std::getline(patterns, line))
+		{
+			if(i%2 != 0)
+			{
+				sdsl::int_vector<2> patt(line.size(),0);
+				for(usafe_t j=0;j<line.size();++j)
+					{ patt[j] = dna_to_code_table[line[j]]; }
+
+				if(prefixArray)
+					{ o = locate_longest_prefix<sdsl::int_vector<2>>(patt).first; }
+				else if(runHeuristic)
+					{ o = locate_one_occurrence_heuristic<sdsl::int_vector<2>>(patt).first; }
+				else{ o = locate_one_occurrence<sdsl::int_vector<2>>(patt).first; }
+				//std::cout << "o = " << o << std::endl;
+				// check occurrence correctness
+				if((o <= -1) or (O.LCP(patt,0,o) != patt.size()))
+				{
+					std::cerr << "Pattern: " << line 
+					          << " not found!" << std::endl;
+					return false;
+				}
+				//exit(1);
 			}
 			i++;
 		}
@@ -353,7 +457,7 @@ public:
 		std::cout << "Everything's fine!" << std::endl;
 		return true;
 	}
-
+	/*
 	bool_t check_pattern_matching_heuristic_correctness(std::string patternFile)
 	{
 		std::ifstream patterns(patternFile);
@@ -365,8 +469,8 @@ public:
 		{
 			if(i%2 != 0)
 			{
-				// std::cout << "LOCATING " << line << std::endl;
-				o = locate_one_occurrence_heuristic(line).first;
+				//std::cout << "LOCATING " << line << std::endl;
+				o = locate_one_occurrence_heuristic<std::string>(line).first;
 
 				// check occurrence correctness
 				if((o == -1) or (O.LCP(line,0,o) != line.size()))
@@ -383,8 +487,7 @@ public:
 
 		std::cout << "Everything's fine!" << std::endl;
 		return true;
-	}
-
+	} */
 private:
 	// text oracle data structure
 	textOracle O;

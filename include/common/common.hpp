@@ -10,6 +10,9 @@
 #define COMMON_HPP_
 
 #include <sys/stat.h>
+#include <cassert>
+
+#include <sdsl/int_vector.hpp>
 
 #ifndef M64
 	#define M64 0
@@ -43,6 +46,8 @@ static unsigned char dna_to_code_table[128] = {
     4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 5
 };
 
+static unsigned char code_to_dna_table[4] = {'A','C','G','T'};
+
 static unsigned char bit_mask_table[16] = {
 	0,   0,   0,   0, 
 	64,  16,  4,   1, 
@@ -73,6 +78,17 @@ void inline set_uint_DNA_inv(uchar_t* t, std::string& p)
     for(uint_t i=0;i<size;++i)
         t[((size-i-1)/4)] |= 
         bit_mask_table[(dna_to_code_table[p[size-i-1]]*4)+((offset+i)%4)];
+}
+
+void inline set_uint_DNA_inv(uchar_t* t, sdsl::int_vector<2>& p, uchar_t len, 
+                                                    uint_t beg, uchar_t plen)
+{
+    assert(plen <= len);
+    uchar_t size = len; 
+    uchar_t offset = 4-(size%4);
+    for(uint_t i=0;i<plen;++i)
+        t[((size-i-1)/4)] |= 
+        bit_mask_table[(p[beg+plen-i-1]*4)+((offset+i)%4)];
 }
 
 void inline set_uint_DNA_inv(uchar_t* t, std::string& p, uchar_t len, 

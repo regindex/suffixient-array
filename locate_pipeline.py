@@ -29,7 +29,7 @@ def main():
     parser.add_argument('--locate_ri',  help='test locate one occurrence queries (def. False)',action='store_true')
     #parser.add_argument('--linear',  help='test linear time algorithm (def. False)',action='store_true')
     #parser.add_argument('--PFP',  help='test PFP algorithm (def. False)',action='store_true')
-    parser.add_argument('--pattern_file', help='File path containing the patterns', type=str, required=True)
+    #parser.add_argument('--pattern_file', help='File path containing the patterns', type=str, required=True)
     parser.add_argument('--logs_dir_name', help='Define the directory name containing the logs (no default)', type=str, required=True)
     args = parser.parse_args()
 
@@ -52,104 +52,117 @@ def main():
         res.write(header)
         # Compute the dataset size
         command = "wc -c {file}".format(file = args.input_file)
-        dataset_size = str(subprocess.check_output(command.split())).split(' ')[6]
+        dataset_size = str(subprocess.check_output(command.split()).decode()).split(' ')[0]
         print("Dataset size (in bytes) =",dataset_size)
 
-        command = "wc -l {file}".format(file = args.pattern_file)
-        no_patterns = str(subprocess.check_output(command.split())).split(' ')[6]
-        no_patterns = int(no_patterns)
-        if(no_patterns%2 != 0):
-            no_patterns += 1
-        no_patterns = int(no_patterns/2)
-        
-        with open(args.pattern_file,'r') as patt:
-            line = patt.readline()
-            line = patt.readline()
-            pattern_length = int(len(line))-1
+        pattern_lengths = [10,100,1000]
 
-        if args.locate_sA:
-            for ot in [["plain",""],["lz77",".lz77"],["Hk",".hkfv"]]:
-                for it in [["prefix-array",".pai"],["baseline",".bai"],["elias-fano",".efi"]]:
+        for pattern_length in pattern_lengths:
+            args.pattern_file = args.input_file + "_pat" + str(pattern_length) + ".fasta"
+            print(args.pattern_file)
 
-                    if not os.path.exists(args.input_file + it[1]) and not os.path.exists(args.input_file + ot[1]):
-                        print("Index file not detected! Computing the",it[0],"index for",args.input_file)
-                        command = "{exe} -i {input_path} -t {it} -o {ot}".format(exe = build_sA_exe, input_path =args.input_file, it = it[0], ot = ot[0])
-                        subprocess.check_output(command.split())
-                    if not os.path.exists(args.input_file + it[1]) and os.path.exists(args.input_file + ot[1]):
-                        print("Index file not detected! Computing the",it[0],"index for",args.input_file,"However the oracle data structure was detected")
-                        command = "{exe} -i {input_path} -t {it} -o plain".format(exe = build_sA_exe, input_path =args.input_file, it = it[0])
-                        subprocess.check_output(command.split())
-                    if os.path.exists(args.input_file + it[1]) and not os.path.exists(args.input_file + ot[1]):
-                        print("Index file not detected! Computing the",it[0],"index for",args.input_file,"However the oracle data structure was detected")
-                        command = "{exe} -i {input_path} -t prefix-array -o {ot}".format(exe = build_sA_exe, input_path =args.input_file, ot = ot[0])
-                        subprocess.check_output(command.split())
+            command = "wc -l {file}".format(file = args.pattern_file)
+            no_patterns = str(subprocess.check_output(command.split()).decode()).split(' ')[0]
+            no_patterns = int(no_patterns)
+            if(no_patterns%2 != 0):
+                no_patterns += 1
+            no_patterns = int(no_patterns/2)
+            print("No patterns =",no_patterns)
+            '''
+            with open(args.pattern_file,'r') as patt:
+                line = patt.readline()
+                line = patt.readline()
+                pattern_length = int(len(line))-1
+            print("Pattern length =",pattern_length)
+            '''
 
+            if args.locate_sA:
+                #for ot in [["plain",""],["bitpacked",""],["lz77",".lz77"],["Hk",".hkfv"]]:
+                for ot in [["bitpacked",""]]:
+                    for it in [["prefix-array",".pai"],["baseline",".bai"],["elias-fano",".efi"]]:
 
-                    command = "{exe} -i {base_path} -t {index_variant} -o {oracle_type} -p {pattern_file}".format(
-                               exe = locate_sA_exe, base_path = args.input_file, index_variant = it[0], oracle_type = ot[0], pattern_file = args.pattern_file)
-                    print("#####",command)
-                    manage_file_cache(args.input_file)
-                    output_str = str(subprocess.check_output(command.split())).split(' ')
-                    print(output_str)
-
-                    peak_memory = output_str[17]
-                    tot_time = output_str[26]
-                    time_per_pattern = output_str[42]
-                    time_per_character = output_str[48]
-
-                    csv_line = it[0]+"+"+ot[0] + "," + args.input_file + "," + str(dataset_size) + "," + str(pattern_length) + \
-                               "," + str(no_patterns) + "," + str(decimal.Decimal(tot_time)) + "," + str(time_per_pattern) + \
-                               "," + time_per_character + "," + peak_memory + "\n"
-                    res.write(csv_line) 
-                    res.flush()
-
-        if args.locate_ri:
-
-            if not os.path.exists(args.input_file + ".ri"):
-                print("Index file not detected! Computing the r-index for",args.input_file)
-                command = "{exe} {input_path}".format(exe = build_ri_exe, input_path = args.input_file)
-                subprocess.check_output(command.split())
-
-            command = "{exe} {index_path} {pattern_path}".format(
-                        exe = locate_ri_exe, index_path = args.input_file + ".ri", pattern_path = args.pattern_file)
-            manage_file_cache(args.input_file)
-
-            print(command)
-            output_str = str(subprocess.check_output(command.split())).split(' ')
-
-            peak_memory = output_str[12]
-            tot_time = output_str[21]
-            time_per_pattern = output_str[37]
-            time_per_character = output_str[43]
-
-            csv_line = "r-index," + args.input_file + "," + str(dataset_size) + "," + str(pattern_length) + \
-                       "," + str(no_patterns) + "," + str(decimal.Decimal(tot_time)) + "," + str(time_per_pattern) + \
-                       "," + time_per_character + "," + peak_memory + "\n"
-            res.write(csv_line) 
-            res.flush()
+                        if not os.path.exists(args.input_file + it[1]) and not os.path.exists(args.input_file + ot[1]):
+                            print("Index file not detected! Computing the",it[0],"index for",args.input_file)
+                            command = "{exe} -i {input_path} -t {it} -o {ot}".format(exe = build_sA_exe, input_path =args.input_file, it = it[0], ot = ot[0])
+                            print(command)
+                            subprocess.check_output(command.split())
+                        if not os.path.exists(args.input_file + it[1]) and os.path.exists(args.input_file + ot[1]):
+                            print("Index file not detected! Computing the",it[0],"index for",args.input_file,"However the oracle data structure was detected")
+                            command = "{exe} -i {input_path} -t {it} -o plain".format(exe = build_sA_exe, input_path =args.input_file, it = it[0])
+                            print(command)
+                            subprocess.check_output(command.split())
+                        if os.path.exists(args.input_file + it[1]) and not os.path.exists(args.input_file + ot[1]):
+                            print("Index file not detected! Computing the",it[0],"index for",args.input_file,"However the oracle data structure was detected")
+                            command = "{exe} -i {input_path} -t prefix-array -o {ot}".format(exe = build_sA_exe, input_path =args.input_file, ot = ot[0])
+                            print(command)
+                            subprocess.check_output(command.split())
 
 
+                        command = "{exe} -i {base_path} -t {index_variant} -o {oracle_type} -p {pattern_file}".format(
+                                   exe = locate_sA_exe, base_path = args.input_file, index_variant = it[0], oracle_type = ot[0], pattern_file = args.pattern_file)
+                        print("#####",command)
+                        manage_file_cache(args.input_file)
+                        output_str = str(subprocess.check_output(command.split())).split(' ')
+                        print(output_str)
 
-        '''
-        if args.one_pass:
-            command = "{exe} -p -o {output}".format(exe = one_pass_exe, output = args.input_file+".suffixient")
-            print("#######",command,"<",args.input_file)
-            # Start writing the csv line
-            csv_preamble = "one-pass," + args.input_file.split('/')[-1] + "," + str(dataset_size) + ","
-            # Run the testing command
-            run_test(command,args.input_file,log_file_path,log_csv_path,res,log_res_path,csv_preamble,True)
-            # Remove output files
-            os.remove(args.input_file+".suffixient")
-        if args.linear:
-            command = "{exe} -p -o {output}".format(exe = linear_time_exe, output = args.input_file+".suffixient")
-            print("#######",command,"<",args.input_file)
-            # Start writing the csv line
-            csv_preamble = "linear," + args.input_file.split('/')[-1] + "," + str(dataset_size) + ","
-            # Run the testing command
-            run_test(command,args.input_file,log_file_path,log_csv_path,res,log_res_path,csv_preamble,True)
-            # Remove output files
-            os.remove(args.input_file+".suffixient")
-        '''
+                        peak_memory = output_str[17]
+                        tot_time = output_str[26]
+                        time_per_pattern = output_str[42]
+                        time_per_character = output_str[48]
+
+                        csv_line = it[0]+"+"+ot[0] + "," + args.input_file + "," + str(dataset_size) + "," + str(pattern_length) + \
+                                   "," + str(no_patterns) + "," + str(decimal.Decimal(tot_time)) + "," + str(time_per_pattern) + \
+                                   "," + time_per_character + "," + peak_memory + "\n"
+                        res.write(csv_line) 
+                        res.flush()
+
+            if args.locate_ri:
+
+                if not os.path.exists(args.input_file + ".ri"):
+                    print("Index file not detected! Computing the r-index for",args.input_file)
+                    command = "{exe} {input_path}".format(exe = build_ri_exe, input_path = args.input_file)
+                    subprocess.check_output(command.split())
+
+                command = "{exe} {index_path} {pattern_path}".format(
+                            exe = locate_ri_exe, index_path = args.input_file + ".ri", pattern_path = args.pattern_file)
+                manage_file_cache(args.input_file)
+
+                print(command)
+                output_str = str(subprocess.check_output(command.split())).split(' ')
+
+                peak_memory = output_str[12]
+                tot_time = output_str[21]
+                time_per_pattern = output_str[37]
+                time_per_character = output_str[43]
+
+                csv_line = "r-index," + args.input_file + "," + str(dataset_size) + "," + str(pattern_length) + \
+                           "," + str(no_patterns) + "," + str(decimal.Decimal(tot_time)) + "," + str(time_per_pattern) + \
+                           "," + time_per_character + "," + peak_memory + "\n"
+                res.write(csv_line) 
+                res.flush()
+
+
+
+            '''
+            if args.one_pass:
+                command = "{exe} -p -o {output}".format(exe = one_pass_exe, output = args.input_file+".suffixient")
+                print("#######",command,"<",args.input_file)
+                # Start writing the csv line
+                csv_preamble = "one-pass," + args.input_file.split('/')[-1] + "," + str(dataset_size) + ","
+                # Run the testing command
+                run_test(command,args.input_file,log_file_path,log_csv_path,res,log_res_path,csv_preamble,True)
+                # Remove output files
+                os.remove(args.input_file+".suffixient")
+            if args.linear:
+                command = "{exe} -p -o {output}".format(exe = linear_time_exe, output = args.input_file+".suffixient")
+                print("#######",command,"<",args.input_file)
+                # Start writing the csv line
+                csv_preamble = "linear," + args.input_file.split('/')[-1] + "," + str(dataset_size) + ","
+                # Run the testing command
+                run_test(command,args.input_file,log_file_path,log_csv_path,res,log_res_path,csv_preamble,True)
+                # Remove output files
+                os.remove(args.input_file+".suffixient")
+            '''
 
 def run_test(command, input_file, log_file, csv_file, resfile, res_file, csv_preamble, stdIN = False):
     '''

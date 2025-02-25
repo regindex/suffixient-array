@@ -126,11 +126,9 @@ public:
 			}
 		else
 			return std::make_tuple(-1,0,true);
-		////std::cout << "low = " << low << " - " << " high = " << high << std::endl;
 
 		while( high-low > 1 )
-		{
-			////std::cout << "computing LCS with : " << this->SA[mid] << std::endl;			
+		{		
 			auto j = O->LCS_char(pattern,pend-1,this->SA[mid]); 
 	
 			if(j.first == plen)
@@ -139,8 +137,6 @@ public:
 				return std::make_tuple(this->SA[mid],plen,false); 		
 			}
 
-			////std::cout << "pend: " << pend << std::endl;
-			////std::cout << "-- " << j.first << " - " << j.second << " <-> " << pattern[pend-j.first-1] << std::endl; 
 			if(j.second > pattern[pend-j.first-1]){
 				high = mid;
 				lcp_high = j.first;
@@ -152,7 +148,59 @@ public:
 			mid = (low+high)/2;
 		}
 
-		////std::cout << "lcp_low= " <<  lcp_low << " - lcp_high = " << lcp_high << std::endl;
+		if(lcp_low  == -1){ lcp_low  = O->LCS_char(pattern,pend-1,SA[low]).first; }
+		if(lcp_high == -1){ lcp_high = O->LCS_char(pattern,pend-1,SA[high]).first;}
+
+		if(lcp_low >= lcp_high){
+			mid = low;
+			lcp_mid = lcp_low;
+		}
+		else{
+			mid = high;
+			lcp_mid = lcp_high;
+		}
+
+		return std::make_tuple(this->SA[mid],lcp_mid,(lcp_mid != plen));
+	}
+
+	std::tuple<uint_t,uint_t,bool_t> 
+		locate_longest_prefix(sdsl::int_vector<2>& pattern,uint_t pstart,uint_t pend) const
+	{
+		// initialize binary search parameters
+		uint_t low, mid, high, plen;
+		int_t lcp_low, lcp_high, lcp_mid;
+		plen = pend - pstart;
+		low  = this->alph[ code_to_dna_table[pattern[pend-1]]   ];
+		high = this->alph[ code_to_dna_table[pattern[pend-1]] +1];
+
+		// stop if first pattern character doesn't occur in the text
+		if((high - low) > 0)
+			{ 
+				high--;
+				lcp_low = lcp_high = -1; 
+				mid = (low+high)/2;
+				if(plen == 1)
+					return std::make_tuple(this->SA[mid],1,false);
+			}
+		else
+			return std::make_tuple(-1,0,true);
+
+		while( high-low > 1 )
+		{		
+			auto j = O->LCS_char(pattern,pend-1,this->SA[mid]); 
+	
+			if(j.first == plen){ return std::make_tuple(this->SA[mid],plen,false); }
+
+			if(j.second > code_to_dna_table[pattern[pend-j.first-1]] ){
+				high = mid;
+				lcp_high = j.first;
+			}
+			else{
+				low = mid;
+				lcp_low = j.first;
+			}
+			mid = (low+high)/2;
+		}
 
 		if(lcp_low  == -1){ lcp_low  = O->LCS_char(pattern,pend-1,SA[low]).first; }
 		if(lcp_high == -1){ lcp_high = O->LCS_char(pattern,pend-1,SA[high]).first;}

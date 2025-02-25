@@ -16,8 +16,9 @@ def replace_n_with_random(dna_sequence):
 def main():
     parser = argparse.ArgumentParser(description=Description, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('input_file', nargs='?', help='the input file', type=str)
-    parser.add_argument('--replace',  help='replace N characters with a random nucleotide', action='store_true')
-    parser.add_argument('--trim',  help='remove all N characters', action='store_true')
+    parser.add_argument('--replace_N',  help='replace N characters with a random nucleotide', action='store_true')
+    parser.add_argument('--trim_N',  help='remove all N characters', action='store_true')
+    parser.add_argument('--trim_nonDNA',  help='remove all non DNA characters', action='store_true')
     parser.add_argument('--trim_newline',  help='remove newline characters', action='store_true')
     parser.add_argument('--output_file',  help='output file path', type=str, required=True)
     #parser.add_argument('--PFP',  help='test PFP algorithm (def. False)',action='store_true')
@@ -30,10 +31,15 @@ def main():
     if args.trim_newline:
         T = T.replace("\n", "")
 
-    if args.replace:
+    if args.replace_N:
         T = replace_n_with_random(T)
-    elif args.trim:
+
+    if args.trim_N:
         T = T.replace("N", "")
+
+    if args.trim_nonDNA:
+        valid_dna_chars = {'A','T','C','G'}
+        T = ''.join([char for char in T if char in valid_dna_chars])
 
     with open(args.output_file,'w+') as output:
         output.write(T)

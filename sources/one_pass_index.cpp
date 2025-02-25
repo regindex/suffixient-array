@@ -246,6 +246,8 @@ int main(int argc, char** argv)
 	}
 	else if(index_variant == "prefixArray")
 	{
+		std::cout << "N = " << N << std::endl;
+		std::cout << "STORE SIZE = " << STORE_SIZE << std::endl;
 	  	string pa_output_basepath = output_basepath + ".pa";
 	  	ofstream ofs = ofstream(pa_output_basepath, ios::binary);
 	  	for (size_t i=1;i<N;++i)

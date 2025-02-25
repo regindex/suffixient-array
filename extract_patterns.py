@@ -10,6 +10,8 @@ base_path = os.path.dirname(os.path.abspath(__file__))
 # TIMEOUR DECLARATION
 timeout = 86400 # 24h
 
+random.seed(0)
+
 # SET SOFTWARE TO GET TIME/SPACE BASED ON OS
 if platform.system() == "Darwin":
     time_space_bin = "gtime"
