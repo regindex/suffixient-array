@@ -8,10 +8,10 @@
 #include <sdsl/construct.hpp>
 #include <cassert>
 
-#define RLZ_HEADER (0x0e8f0000 + 0x0001)
-
 template < class SD_VECTOR = sdsl::sd_vector<> >
 struct RLZ_DNA { 
+    static const uint64_t RLZ_HEADER = (0x0e8f0000 + 0x0001);
+
     typedef typename SD_VECTOR::rank_1_type   rank_t;
     typedef typename SD_VECTOR::select_1_type select_t;
 
