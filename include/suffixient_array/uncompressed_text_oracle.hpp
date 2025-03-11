@@ -38,6 +38,14 @@ public:
 
     unsigned char extract(usafe_t i){ return this->T[i]; }
 
+    std::string display(usafe_t i, usafe_t j)
+    {
+        std::string res(j-i+1,0);
+        for(usafe_t y=i;y<j+1;++y){ res[y-i] = this->T[y]; }
+
+        return res;
+    }
+
     usafe_t LCP(std::string& pattern, usafe_t p, usafe_t t)
     {
         usafe_t matched_chars = 0;

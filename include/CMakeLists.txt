@@ -18,3 +18,6 @@ target_include_directories(suffixient_array PUBLIC suffixient_array)
 
 add_subdirectory(Hk)
 target_include_directories(Hk PUBLIC Hk)
+
+add_subdirectory(RLZ)
+target_include_directories(RLZ PUBLIC RLZ)

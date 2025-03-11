@@ -369,7 +369,8 @@ struct RLZ_DNA {
         return LCS_char( P, p, t ).first;
     }
 
-    std::pair<size_t,unsigned char> LCS_char( const std::string& P, size_t p, size_t t ) const {
+    //std::pair<size_t,unsigned char> LCS_char( const std::string& P, size_t p, size_t t ) const {
+    std::pair<size_t,char> LCS_char( const std::string& P, size_t p, size_t t ) const {
         if( t >= total_length ) return std::make_pair(0,(unsigned char)-1);
         size_t rlen = reference.len;
         size_t m    = P.size();

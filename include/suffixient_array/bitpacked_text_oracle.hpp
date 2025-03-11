@@ -29,30 +29,6 @@ public:
                 { std::cerr << "Non DNA character detected!" << std::endl; exit(1); }
             T[i] = dna_to_code_table[c];
         }
-        //start LCP GCCTGGAGCTCAGGCAGACCTGTCTCACCCACGCCCACCTAGGTGGTGTGACCTTACCTGGGGCAGCTCCAGGGGCAGCTGTGCAGGGTGGTGGGGAGCT - 15 : 566789425
-        /*
-        std::string pattern_ = "GCCTGGAGCTCAGGCAGACCTGTCTCACCCACGCCCACCTAGGTGGTGTGACCTTACCTGGGGCAGCTCCAGGGGCAGCTGTGCAGGGTGGTGGGGAGCT";
-        sdsl::int_vector<PACKED_INT_SIZE> pattern(100,0);
-        for(usafe_t i=0;i<pattern_.size();++i)
-        {
-            pattern[i] = dna_to_code_table[pattern_[i]];
-        }
-        std::cout << "lcp-> " << LCP_(pattern,15,566789425) << std::endl;
-        exit(1);
-        */
-        //std::cout << "prova-> " << LCP_(pattern,15,566789425) << std::endl;
-        //std::cout << "sbagliato-> " << LCP(pattern,15,566789425) << std::endl;
-        //exit(1);
-
-        //std::string pattern = "GATCACAGAGGCTGGGCTGCTCCCCACCCTCTGCACACCTCCTGCTTCTAACAGCAGAGCTGCCAGGCCAGGCCCTCAGGCAAGGGCTCTGAAGTCAGGG";
-        //std::string pattern =   "GATCGCAGAGGCTGGGCTGCTCCCCACCCTCTGCACACCTCCAGCTTCTAACAGCAGAGCTGCCAGGCCAGGCCCTCAGGCAAGGGCTCTGAAGTCACGG";
-        //std::string pattern = "GCCTGGAGCTCAGGCAGACCTGTCTCACCCACGCCCACCTAGGTGGTGTGACCTTACCTGGGGCAGCTCCAGGGGCAGCTGTGCAGGGTGGTGGGGAGCT";
-        //auto d = LCS_char(pattern,63,171768236);
-        //std::cout << "prova -> " << d.first << " - " << d.second << std::endl;
-        //auto c = LCS_char_(pattern,63,171768236);
-        //std::cout << "giusto -> " << c.first << " - " << c.second << std::endl;
-        //exit(1);
-        //LCP(pattern,80,80);
     } 
 
     usafe_t store(std::string output_file_path)
@@ -124,7 +100,6 @@ public:
 
         return matched_chars;
     }
-    */
     usafe_t LCP(sdsl::int_vector<PACKED_INT_SIZE>& P, usafe_t p, usafe_t t)
     {
         usafe_t matched_chars = 0;
@@ -155,48 +130,6 @@ public:
 
         return matched_chars;
     }
-    /*
-    usafe_t LCS_(std::string& pattern, size_t p, size_t t)
-    { 
-        std::cout << "start LCS " << pattern << " - " << p << " : " << t << std::endl;
-        usafe_t matched_chars = 0;
-        usafe_t available_chars = std::min(p+1,t+1);
-        usafe_t available_blocks = available_chars / (64/PACKED_INT_SIZE);
-        //std::cout << "available_blocks " << available_blocks << std::endl;
-
-        while(available_blocks > 0)
-        {
-            usafe_t T_int = this->T.get_int((t-matched_chars)*PACKED_INT_SIZE);
-            usafe_t P_int = 0;
-            set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&P_int), pattern, 
-                             (64/PACKED_INT_SIZE), p-matched_chars, (64/PACKED_INT_SIZE));
-            usafe_t xor_int = T_int ^ P_int;
-            //std::cout << xor_int << std::endl;
-            //std::cout << (matched_chars + (__builtin_ctzll(xor_int) / PACKED_INT_SIZE)) << std::endl;
-
-
-            if(xor_int != 0){ return matched_chars + (__builtin_ctz(xor_int) / PACKED_INT_SIZE); }
-
-            matched_chars += 64/PACKED_INT_SIZE;
-            available_chars -= 64/PACKED_INT_SIZE;
-            available_blocks--;
-        }
-        {
-            //std::cout << "ii" << std::endl;
-            usafe_t T_int = this->T.get_int((t-matched_chars)*PACKED_INT_SIZE,available_chars*PACKED_INT_SIZE);
-            //std::cout << "ii" << std::endl;
-            usafe_t P_int = 0;
-            set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&P_int), pattern, available_chars, p-matched_chars, available_chars);
-            //std::cout << "ii" << std::endl;
-            usafe_t xor_int = T_int ^ P_int;
-
-            if(xor_int != 0){ return matched_chars + (__builtin_ctzll(xor_int) / PACKED_INT_SIZE); }
-
-            matched_chars += available_chars;
-        }
-
-        return matched_chars;
-    }   
     */
     usafe_t LCS(std::string& pattern, size_t p, size_t t)
     {
@@ -269,7 +202,6 @@ public:
         //std::cout << "end LCS 3" << std::endl;
         return std::make_pair(matched_chars,-1);
     }
-    */
     std::pair<usafe_t,char_t> LCS_char(sdsl::int_vector<PACKED_INT_SIZE>& P, usafe_t p, usafe_t t)
     {
         //std::cout << "start LCS char " << pattern << " - " << p << " : " << t << std::endl;
@@ -310,7 +242,7 @@ public:
 
         return std::make_pair(matched_chars,-1);
     }
-    
+    */
     std::pair<usafe_t,char_t> LCS_char(std::string& pattern, usafe_t p, usafe_t t)
     {
         usafe_t matched_chars = 0;

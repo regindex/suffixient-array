@@ -51,7 +51,7 @@ public:
 	 * returns: bit in position i
 	 * only access! the bitvector is static.
 	 */
-	bool_t operator[](uint_t i)
+	bool_t operator[](uint_t i) const
 	{
 		assert(i<size());
 		return bv[i];

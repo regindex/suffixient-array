@@ -127,9 +127,12 @@ public:
 		else
 			return std::make_tuple(-1,0,true);
 
+		//std::cout << "low: " << low << " high: " << high << " mid: " << mid << std::endl;
+
 		while( high-low > 1 )
 		{		
 			auto j = O->LCS_char(pattern,pend-1,this->SA[mid]); 
+			//std::cout << j.first << " - " << int(j.second) << " - " << this->SA[mid] << std::endl;
 	
 			if(j.first == plen)
 			{
@@ -146,6 +149,7 @@ public:
 				lcp_low = j.first;
 			}
 			mid = (low+high)/2;
+			//std::cout << "low: " << low << " high: " << high << " mid: " << mid << std::endl;
 		}
 
 		if(lcp_low  == -1){ lcp_low  = O->LCS_char(pattern,pend-1,SA[low]).first; }
@@ -162,7 +166,7 @@ public:
 
 		return std::make_tuple(this->SA[mid],lcp_mid,(lcp_mid != plen));
 	}
-
+	/*
 	std::tuple<uint_t,uint_t,bool_t> 
 		locate_longest_prefix(sdsl::int_vector<2>& pattern,uint_t pstart,uint_t pend) const
 	{
@@ -216,7 +220,7 @@ public:
 
 		return std::make_tuple(this->SA[mid],lcp_mid,(lcp_mid != plen));
 	}
-
+	*/
 private:
 	//
 	text_oracle* O;

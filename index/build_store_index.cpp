@@ -54,7 +54,7 @@ void construct_store_index(std::string inputPath, std::string indexPath,
         std::cout << "Storing substring of length " << storedLen << " preceding"
                   << " the suffixient positions" << std::endl; 
     }
-    else{ storedLen = 10; }
+    else{ storedLen = 14; }
     */
     int_t storedLen = 14;
 
@@ -77,7 +77,7 @@ void help(){
     "-h          Print usage info." << endl <<
     "-i <arg>    Input files base path. Default: Empty." << endl <<
     "-t <arg>    Index type (baseline|elias-fano|prefix-array). Default: baseline." << endl << 
-    "-o <arg>    Text oracle (plain|lz77|Hk). Default: lz77." << endl << 
+    "-o <arg>    Text oracle (plain|bitpacked|lz77|rlz|Hk). Default: lz77." << endl << 
     "-l <arg>    Maximum additional space (percentage) on top of the suffixient array. Default: 10%." << endl << 
     "-v          Activate verbosity mode. Default: false." << endl;
     exit(0);
@@ -138,11 +138,25 @@ int main(int argc, char* argv[])
          suffixient::uncompressed_text_oracle>
         (inputPath,inputPath+".bai");
     }
+    else if(indexType == "baseline" and oracleType == "bitpacked")
+    {
+        construct_store_index
+        <suffixient::suffixient_array_baseline<suffixient::bitpacked_text_oracle>,
+         suffixient::bitpacked_text_oracle>
+        (inputPath,inputPath+".bai");
+    }
     else if(indexType == "baseline" and oracleType == "Hk")
     {
         construct_store_index
         <suffixient::suffixient_array_baseline<Hk_Ferragina_Venturini<>>,
          Hk_Ferragina_Venturini<>>
+        (inputPath,inputPath+".bai");
+    }
+    else if(indexType == "baseline" and oracleType == "rlz")
+    {
+        construct_store_index
+        <suffixient::suffixient_array_baseline<RLZ_DNA<>>,
+         RLZ_DNA<>>
         (inputPath,inputPath+".bai");
     }
     else if(indexType == "prefix-array" and oracleType == "lz77")
@@ -159,11 +173,25 @@ int main(int argc, char* argv[])
          suffixient::uncompressed_text_oracle>
         (inputPath,inputPath+".pai");
     }
+    else if(indexType == "prefix-array" and oracleType == "bitpacked")
+    {
+        construct_store_index
+        <suffixient::suffix_array_binary_search<suffixient::bitpacked_text_oracle>,
+         suffixient::bitpacked_text_oracle>
+        (inputPath,inputPath+".pai");
+    }
     else if(indexType == "prefix-array" and oracleType == "Hk")
     {
         construct_store_index
         <suffixient::suffix_array_binary_search<Hk_Ferragina_Venturini<>>,
          Hk_Ferragina_Venturini<>>
+        (inputPath,inputPath+".pai");
+    }
+    else if(indexType == "prefix-array" and oracleType == "rlz")
+    {
+        construct_store_index
+        <suffixient::suffix_array_binary_search<RLZ_DNA<>>,
+         RLZ_DNA<>>
         (inputPath,inputPath+".pai");
     }
     else if(indexType == "elias-fano" and oracleType == "lz77")
@@ -186,6 +214,16 @@ int main(int argc, char* argv[])
                      suffixient::uncompressed_text_oracle>
         (inputPath,inputPath+extension,additional_space);
     }
+    else if(indexType == "elias-fano" and oracleType == "bitpacked")
+    {
+        //std::string extension = "." + std::to_string(additional_space) + "efi";
+        std::string extension = ".efi";
+        construct_store_index
+        <suffixient::suffixient_array_elias_fano<suffixient::bitpacked_text_oracle,
+                     suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
+                     suffixient::bitpacked_text_oracle>
+        (inputPath,inputPath+extension,additional_space);
+    }
     else if(indexType == "elias-fano" and oracleType == "Hk")
     {
         //std::string extension = "." + std::to_string(additional_space) + "efi";
@@ -194,6 +232,16 @@ int main(int argc, char* argv[])
         <suffixient::suffixient_array_elias_fano<Hk_Ferragina_Venturini<>,
                      suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
                      Hk_Ferragina_Venturini<>>
+        (inputPath,inputPath+extension,additional_space);
+    }
+    else if(indexType == "elias-fano" and oracleType == "rlz")
+    {
+        //std::string extension = "." + std::to_string(additional_space) + "efi";
+        std::string extension = ".efi";
+        construct_store_index
+        <suffixient::suffixient_array_elias_fano<RLZ_DNA<>,
+                     suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
+                     RLZ_DNA<>>
         (inputPath,inputPath+extension,additional_space);
     }
     else{

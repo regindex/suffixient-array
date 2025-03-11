@@ -170,6 +170,13 @@ public:
 			this->bv = bitvector(tmp_bv);
 			this->ef = elias_fano_ds(onset,pow(SIGMA_DNA,this->len));
 
+			{
+				usafe_t bv_density = 0;
+				for(usafe_t i=0;i<tmp_bv.size();++i){ if(tmp_bv[i]){ bv_density++; } }
+				std::cout << "bv_density: " << (double)bv_density/tmp_bv.size() << std::endl;
+				std::cout << "ef_density: " << (double)onset.size()/pow(SIGMA_DNA,this->len) << std::endl;
+			}
+
 			file_text.close();
 		}
 
@@ -206,7 +213,7 @@ public:
 		ef.load(in);
 		bv.load(in);
 	}
-
+	/*
 	std::tuple<uint_t,uint_t,bool_t> 
 		locate_longest_prefix(std::string& pattern,uint_t pstart,uint_t pend) const
 	{
@@ -215,6 +222,7 @@ public:
 		uint_t to_match = std::min(static_cast<uint_t>(this->len),plen);
 		uint_t mlen = 0;
 
+		std::cout << "Heuristic len: " << this->len << std::endl;
 		set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&search), pattern, this->len, 
                                             		    pend-to_match, to_match);
 		//std::cout << "search = " << search << " - " << pstart << " - " << pend << std::endl;
@@ -250,20 +258,19 @@ public:
 				else{ mlen = (m2 - ((sizeof(uint_t)*8)-(this->len*2)))/2; }
 			}
 		}
-		/*
-		else
-		{
-			uint_t s1 = ef.select1(r-1), s2 = ef.select1(r);
-			int_t m1 = __builtin_clz(search ^ s1), m2 = __builtin_clz(search ^ s2);
-
-			if(m1 > m2)
-			{
-				r--;
-				mlen = (m1 - ((sizeof(uint_t)*8)-(this->len*2)))/2;
-			}
-			else{ mlen = (m2 - ((sizeof(uint_t)*8)-(this->len*2)))/2; }
-		}
-		*/
+		
+		//else
+		//{
+		//	uint_t s1 = ef.select1(r-1), s2 = ef.select1(r);
+		//	int_t m1 = __builtin_clz(search ^ s1), m2 = __builtin_clz(search ^ s2);
+		//
+		//	if(m1 > m2)
+		//	{
+		//		r--;
+		//		mlen = (m1 - ((sizeof(uint_t)*8)-(this->len*2)))/2;
+		//	}
+		//	else{ mlen = (m2 - ((sizeof(uint_t)*8)-(this->len*2)))/2; }
+		//}
 
 		if(mlen < to_match){ return std::make_tuple(this->Suff[bv.select(r)],mlen,true); }
 		else if(plen == to_match){ return std::make_tuple(this->Suff[bv.select(r)],to_match,false); }
@@ -279,6 +286,7 @@ public:
 			// stop if first pattern character doesn't occur in the text
 			if((high - low) > 0)
 			{ 
+				// --> devo lavorare qua dentro!!!
 				high--;
 				lcp_low = lcp_high = -1; 
 				mid = (low+high)/2;
@@ -322,7 +330,237 @@ public:
 			return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
 		}
 	}
+	*/
 
+	std::tuple<uint_t,uint_t,bool_t> 
+		locate_longest_prefix(std::string& pattern,uint_t pstart,uint_t pend) const
+	{
+		uint_t search = 0;
+		uint_t plen = pend-pstart;
+		uint_t to_match = std::min(static_cast<uint_t>(this->len),plen);
+		uint_t mlen = 0;
+
+		//std::cout << "Heuristic len: " << this->len << std::endl;
+		set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&search), pattern, this->len, 
+                                            		    pend-to_match, to_match);
+		//std::cout << "search = " << search << " - " << pstart << " - " << pend << std::endl;
+		uint_t r = ef.rank1(search+1);
+
+		//std::cout << "r " << r << std::endl;
+
+		if(r == 0)
+		{
+			uint_t s1 = ef.select1(r);
+			mlen = (__builtin_clz(search ^ s1)-((sizeof(uint_t)*8)-(this->len*2)))/2;
+		}
+		else if(r == ef.no_ones())
+		{
+			r--;
+			uint_t s1 = ef.select1(r);
+			mlen = (__builtin_clz(search ^ s1)-((sizeof(uint_t)*8)-(this->len*2)))/2;
+		}
+		else
+		{
+			uint_t s1 = ef.select1(r-1);
+			if(search == s1){ r--; mlen = to_match; }
+			else
+			{
+				uint_t s2 = ef.select1(r);
+				int_t m1 = __builtin_clz(search ^ s1), m2 = __builtin_clz(search ^ s2);
+
+				if(m1 > m2)
+				{
+					r--;
+					mlen = (m1 - ((sizeof(uint_t)*8)-(this->len*2)))/2;
+				}
+				else{ mlen = (m2 - ((sizeof(uint_t)*8)-(this->len*2)))/2; }
+			}
+		}
+
+		if(mlen < to_match){ return std::make_tuple(this->Suff[bv.select(r)],mlen,true); }
+		else if(plen == to_match){ return std::make_tuple(this->Suff[bv.select(r)],to_match,false); }
+		else
+		{
+			uint_t low, mid, high;
+			int_t lcp_low, lcp_high, lcp_mid;
+			low  = bv.select(r);
+			high = bv.select(r+1);
+
+			//std::cout << "low " << low << " high " << high << std::endl;
+
+			// stop if first pattern character doesn't occur in the text
+			if((high - low) > 0)
+			{ 
+				// --> devo lavorare qua dentro!!!
+				high--;
+				lcp_low = lcp_high = -1; 
+				mid = (low+high)/2;
+				if(plen == 1)
+					return std::make_tuple(this->Suff[mid],1,false);
+			}
+			else
+				return std::make_tuple(-1,0,true);
+
+
+			if( high-low == 0 )
+			{
+				lcp_mid  = O->LCS_char(pattern,pend-1,Suff[mid]).first;
+				return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
+			}
+			else
+			{
+				while( high-low > 1 )
+				{			
+					auto j = O->LCS_char(pattern,pend-1,this->Suff[mid]); 
+			
+					if(j.first == plen)
+						return std::make_tuple(this->Suff[mid],plen,false); 		
+
+					if(j.second > pattern[pend-j.first-1]){
+						high = mid;
+						lcp_high = j.first;
+					}
+					else{
+						low = mid;
+						lcp_low = j.first;
+					}
+					mid = (low+high)/2;
+				}
+
+				if(lcp_low  == -1){ lcp_low  = O->LCS_char(pattern,pend-1,Suff[low]).first; }
+				if(lcp_high == -1){ lcp_high = O->LCS_char(pattern,pend-1,Suff[high]).first;}
+
+				if(lcp_low >= lcp_high){
+					mid = low;
+					lcp_mid = lcp_low;
+				}
+				else{
+					mid = high;
+					lcp_mid = lcp_high;
+				}
+
+				return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
+			}
+		}
+	}
+
+	std::tuple<uint_t,uint_t,bool_t> 
+		locate_longest_prefix_opt(std::string& pattern,uint_t pstart,uint_t pend) const
+	{
+		/*
+		std::cout << "PROVETTA" << std::endl;
+		std::cout << "no ones ef = " << ef.no_ones() << std::endl;
+		usafe_t len_1_int = 0;
+		usafe_t len_tot = 0;
+		for(usafe_t i=0;i<ef.no_ones();++i)
+		{
+			usafe_t low  = bv.select(i), high = bv.select(i+1);
+			if((high - low) == 1){ len_1_int++; }
+			len_tot += (high - low);
+		}
+		std::cout << "no len_1_int = " << len_1_int << std::endl;
+		std::cout << "len tot = " << len_tot << std::endl;
+		usafe_t no_ones = 0;
+		for(usafe_t i=0;i<bv.size();++i)
+		{
+			if(static_cast<bool>(bv[i])){ no_ones++; }
+		}
+		std::cout << "size = " << bv.size() << " no_ones = " << no_ones << std::endl;
+
+		exit(1);
+		*/
+		uint_t search = 0;
+		uint_t plen = pend-pstart;
+		uint_t to_match = std::min(static_cast<uint_t>(this->len),plen);
+		uint_t mlen = 0;
+
+		set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&search), pattern, this->len, 
+                                            		    pend-to_match, to_match);
+		uint_t r = ef.rank1(search+1);
+
+		if(r == 0)
+		{
+			uint_t s1 = ef.select1(r);
+			mlen = (__builtin_clz(search ^ s1)-((sizeof(uint_t)*8)-(this->len*2)))/2;
+		}
+		else if(r == ef.no_ones())
+		{
+			r--;
+			uint_t s1 = ef.select1(r);
+			mlen = (__builtin_clz(search ^ s1)-((sizeof(uint_t)*8)-(this->len*2)))/2;
+		}
+		else
+		{
+			uint_t s1 = ef.select1(r-1);
+			if(search == s1){ r--; mlen = to_match; }
+			else
+			{
+				uint_t s2 = ef.select1(r);
+				int_t m1 = __builtin_clz(search ^ s1), m2 = __builtin_clz(search ^ s2);
+
+				if(m1 > m2)
+				{
+					r--;
+					mlen = (m1 - ((sizeof(uint_t)*8)-(this->len*2)))/2;
+				}
+				else{ mlen = (m2 - ((sizeof(uint_t)*8)-(this->len*2)))/2; }
+			}
+		}
+
+		if(mlen < to_match)      { return std::make_tuple(this->Suff[bv.select(r)],mlen,true);      }
+		else if(plen == to_match){ return std::make_tuple(this->Suff[bv.select(r)],to_match,false); }
+		else
+		{
+			uint_t low, mid, high;
+			int_t lcp_low, lcp_high, lcp_mid;
+			low  = bv.select(r); high = bv.select(r+1);
+
+			// stop if first pattern character doesn't occur in the text
+			if((high - low) > 0)
+			{ 
+				high--;
+				lcp_low = lcp_high  = -1; 
+				mid = (low+high)/2; 
+				if(plen == 1){ return std::make_tuple(this->Suff[mid],1,false); }
+			}
+			else{ return std::make_tuple(-1,0,true); }
+
+			if((high - low) == 0) { return std::make_tuple(this->Suff[mid],mlen,false); }
+			else{
+				while( high-low > 1 )
+				{			
+					auto j = O->LCS_char(pattern,pend-1,this->Suff[mid]); 
+			
+					if(j.first == plen){ return std::make_tuple(this->Suff[mid],plen,false); } 		
+
+					if(j.second > pattern[pend-j.first-1]){
+						high = mid;
+						lcp_high = j.first;
+					}
+					else{
+						low = mid;
+						lcp_low = j.first;
+					}
+					mid = (low+high)/2;
+				}
+
+				if(lcp_low  == -1){ lcp_low  = O->LCS_char(pattern,pend-1,Suff[low]).first; }
+				if(lcp_high == -1){ lcp_high = O->LCS_char(pattern,pend-1,Suff[high]).first;}
+
+				if(lcp_low >= lcp_high){
+					mid = low;
+					lcp_mid = lcp_low;
+				}
+				else{
+					mid = high;
+					lcp_mid = lcp_high;
+				}
+
+				return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
+			}
+		}
+	}
+	/*
 	std::tuple<uint_t,uint_t,bool_t> 
 		locate_longest_prefix(sdsl::int_vector<2>& pattern,uint_t pstart,uint_t pend) const
 	{
@@ -435,7 +673,7 @@ public:
 			return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
 		}
 	}
-
+	*/
 private:
 	//
 	text_oracle* O;

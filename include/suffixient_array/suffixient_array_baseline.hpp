@@ -187,7 +187,7 @@ public:
 
 		return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
 	}
-
+	/*
 	std::tuple<uint_t,uint_t,bool_t> 
 		locate_longest_prefix(sdsl::int_vector<2>& pattern,uint_t pstart,uint_t pend) const
 	{
@@ -244,7 +244,7 @@ public:
 
 		return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
 	}
-
+	*/
 private:
 	//
 	text_oracle* O;

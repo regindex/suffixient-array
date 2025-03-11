@@ -27,9 +27,6 @@ def main():
     parser.add_argument('input_file', nargs='?', help='the input file', type=str)
     parser.add_argument('--locate_sA',  help='test locate one occurrence queries (def. False)',action='store_true')
     parser.add_argument('--locate_ri',  help='test locate one occurrence queries (def. False)',action='store_true')
-    #parser.add_argument('--linear',  help='test linear time algorithm (def. False)',action='store_true')
-    #parser.add_argument('--PFP',  help='test PFP algorithm (def. False)',action='store_true')
-    #parser.add_argument('--pattern_file', help='File path containing the patterns', type=str, required=True)
     parser.add_argument('--logs_dir_name', help='Define the directory name containing the logs (no default)', type=str, required=True)
     args = parser.parse_args()
 
@@ -48,7 +45,7 @@ def main():
     with open(log_csv_path,"w+") as res:
 
         # CSV file header
-        header = "index,dataset,dataset_size(bytes),pattern_length,no_patterns,time(sec),time_per_patt(microsec),time_per_char(nanosec),space(bytes)\n"
+        header = "index,oracle,dataset,dataset_size,pattern_length,no_patterns,time,time_per_patt,time_per_char,Memory peak\n"
         res.write(header)
         # Compute the dataset size
         command = "wc -c {file}".format(file = args.input_file)
@@ -68,17 +65,10 @@ def main():
                 no_patterns += 1
             no_patterns = int(no_patterns/2)
             print("No patterns =",no_patterns)
-            '''
-            with open(args.pattern_file,'r') as patt:
-                line = patt.readline()
-                line = patt.readline()
-                pattern_length = int(len(line))-1
-            print("Pattern length =",pattern_length)
-            '''
 
             if args.locate_sA:
                 #for ot in [["plain",""],["bitpacked",""],["lz77",".lz77"],["Hk",".hkfv"]]:
-                for ot in [["bitpacked",""]]:
+                for ot in [["rlz",".rlz"]]:
                     for it in [["prefix-array",".pai"],["baseline",".bai"],["elias-fano",".efi"]]:
 
                         if not os.path.exists(args.input_file + it[1]) and not os.path.exists(args.input_file + ot[1]):
@@ -105,12 +95,13 @@ def main():
                         output_str = str(subprocess.check_output(command.split())).split(' ')
                         print(output_str)
 
-                        peak_memory = output_str[17]
-                        tot_time = output_str[26]
-                        time_per_pattern = output_str[42]
-                        time_per_character = output_str[48]
+                        peak_memory = output_str[19]
+                        tot_time = output_str[28]
+                        time_per_pattern = output_str[44]
+                        time_per_character = output_str[50]
+                        #print("-->",peak_memory,tot_time,time_per_pattern,time_per_character)
 
-                        csv_line = it[0]+"+"+ot[0] + "," + args.input_file + "," + str(dataset_size) + "," + str(pattern_length) + \
+                        csv_line = it[0] + "," + ot[0] + "," + args.input_file + "," + str(dataset_size) + "," + str(pattern_length) + \
                                    "," + str(no_patterns) + "," + str(decimal.Decimal(tot_time)) + "," + str(time_per_pattern) + \
                                    "," + time_per_character + "," + peak_memory + "\n"
                         res.write(csv_line) 
@@ -140,174 +131,6 @@ def main():
                            "," + time_per_character + "," + peak_memory + "\n"
                 res.write(csv_line) 
                 res.flush()
-
-
-
-            '''
-            if args.one_pass:
-                command = "{exe} -p -o {output}".format(exe = one_pass_exe, output = args.input_file+".suffixient")
-                print("#######",command,"<",args.input_file)
-                # Start writing the csv line
-                csv_preamble = "one-pass," + args.input_file.split('/')[-1] + "," + str(dataset_size) + ","
-                # Run the testing command
-                run_test(command,args.input_file,log_file_path,log_csv_path,res,log_res_path,csv_preamble,True)
-                # Remove output files
-                os.remove(args.input_file+".suffixient")
-            if args.linear:
-                command = "{exe} -p -o {output}".format(exe = linear_time_exe, output = args.input_file+".suffixient")
-                print("#######",command,"<",args.input_file)
-                # Start writing the csv line
-                csv_preamble = "linear," + args.input_file.split('/')[-1] + "," + str(dataset_size) + ","
-                # Run the testing command
-                run_test(command,args.input_file,log_file_path,log_csv_path,res,log_res_path,csv_preamble,True)
-                # Remove output files
-                os.remove(args.input_file+".suffixient")
-            '''
-
-def run_test(command, input_file, log_file, csv_file, resfile, res_file, csv_preamble, stdIN = False):
-    '''
-    Start the testing procedure for a specified command and store the results.
-    This function executes a command with a given input file, captures its output, 
-    and logs the results in a csv table.
-
-    Args:
-        command (str): the command line to execute.
-        input_file (str): the path to the input file.
-        log_file (str): the path to the log file where the execution logs are recorded.
-        csv_file (str): the path to the CSV file where all collected results are stored.
-        resfile (pointer): a file pointer to the currently opened CSV result file.
-        res_file (str): the path to the file that stores time and space results for the current input.
-        csv_preamble (str): a string containing the preamble for the current entry in the CSV file.
-        stdIN (bool): A boolean indicating whether the current executable expects input to be streamed 
-                      from standard input (True) or read from a file (False).
-
-    Returns:
-        None
-    '''
-    # Execution elapsed time
-    elapsed_time = 0.0
-    # Clear and load cache associated to a file
-    manage_file_cache(input_file)
-
-    # Open the log file in append mode
-    with open(log_file,"a") as logfile:
-        # Write the command to get the execution time/space with /usr/bin/time
-        command = "{bin} -v -o {info} ".format(bin=time_space_bin,info=res_file) + command
-        # Start command execution
-        print("Command:", command, flush=True)
-        start = time.time()
-        if stdIN:
-            ret = execute_command_stdin(command,input_file,logfile,log_file,timeout,None)
-        else:
-            ret = execute_command(command,logfile,log_file,timeout,None)
-        # Check if the execution ended correctly
-        if not ret[0]:
-            print("Some error occurred during the execution...Check the log file:",log_file)
-            exit(1)
-        # Print the elapsed time
-        elapsed_time = time.time()-start
-        print("Elapsed time: {0:.4f}".format(elapsed_time), flush=True)
-        logfile.write("Elapsed time: {0:.4f}".format(elapsed_time))
-        # End command execution
-
-        # Extract time/space from resfile
-        WCT,rss,cpu,cpu_eff = get_time_space(res_file);
-        # Complete the CSV line and store it in the table storing the results
-        csv_preamble += str(ret[1]) + "," + str(WCT) + "," + str(rss/10**3) + "," + str(cpu_eff) + "\n"
-        resfile.write(csv_preamble) 
-        resfile.flush()
-
-    return 
-
-# execute command: return True is everything OK, False otherwise, then return the execution stdout
-def execute_command(command,logfile,logfile_path,timeout=None,env=None):
-    '''
-    Execute command and returns information given through the standard output.
-
-    Args:
-        command (str): command to execute.
-        logfile (pointer): pointer to a currently opened logfile.
-        logfile_path (str): path to a currently opened logfile.
-        timeout (int): time in seconds before stopping the execution for timeout.
-        env (environ): custom execution environment.
-
-    Returns:
-        bool: boolen equals to False if some error happened, True otherwise.
-        int: dummy int.
-    '''
-    try:
-        p = subprocess.Popen(command.split(),stdout=logfile,stderr=logfile,env=env)
-        if timeout != None:
-            try:
-                p.communicate(timeout=timeout)
-            except subprocess.TimeoutExpired as e:
-                print("Timeout executing command line:")
-                print("\t"+ command)
-                # get all descendant pids
-                pids_o = subprocess.check_output("pstree -p {pid} | grep -o '([0-9]\\+)' | grep -o '[0-9]\\+'".format(pid=p.pid),shell=True)
-                pids = re.findall('\\d+', pids_o.decode("utf-8"))
-                print("Killing PIDs: " + "".join(str(pid) + " " for pid in pids))
-                print("Check log file: " + logfile)
-                for pid in pids:
-                    os.kill(int(pid),signal.SIGKILL)
-                    os.kill(int(pid),signal.SIGTERM)
-                return False,-1
-
-    except subprocess.CalledProcessError:
-        print("Error executing command line:")
-        print("\t"+ command)
-        print("Check log file: " + logfile)
-        return False,-1
-
-    return True,0
-
-def execute_command_stdin(command,inputfile,logfile,logfile_path,timeout=None,env=None):
-    '''
-    Execute command and returns information given through the standard output.
-    This function executes binaries which expect the input coming as a stream from
-    the standard input.
-
-    Args:
-        command (str): command to execute.
-        inputfile (pointer): path to the input file.
-        logfile (str): pointer to a currently opened logfile.
-        logfile_path (str): path to a currently opened logfile.
-        timeout (int): time in seconds before stopping the execution for timeout.
-        env (environ): custom execution environment.
-
-    Returns:
-        bool: boolen equals to False if some error happened, True otherwise.
-        int: Suffixient set size.
-    '''
-    try:
-        with open(inputfile, 'rb', 0) as a:
-            p = subprocess.Popen(command.split(),stdin=a,stdout=subprocess.PIPE,stderr=logfile,env=env)
-
-        if timeout != None:
-            try:
-                stdout = p.communicate(timeout=timeout)[0].decode()
-                logfile.write(stdout)
-                suffixient_set_size = stdout.split(' ')[-1].split('\n')[0]
-            except subprocess.TimeoutExpired as e:
-                print("Timeout executing command line:")
-                print("\t"+ command)
-                # get all descendant pids
-                pids_o = subprocess.check_output("pstree -p {pid} | grep -o '([0-9]\\+)' | grep -o '[0-9]\\+'".format(pid=p.pid),shell=True)
-                pids = re.findall('\\d+', pids_o.decode("utf-8"))
-                print("Killing PIDs: " + "".join(str(pid) + " " for pid in pids))
-                print("Check log file: " + logfile)
-                for pid in pids:
-                    os.kill(int(pid),signal.SIGKILL)
-                    os.kill(int(pid),signal.SIGTERM)
-                return False,-1
-
-    except subprocess.CalledProcessError as e:
-        print("Error executing command line:")
-        print("\t"+ command)
-        print("Check log file: " + logfile)
-        return False,-1
-    
-    return True,suffixient_set_size
 
 def manage_file_cache(filename):
     '''
@@ -342,68 +165,6 @@ def manage_file_cache(filename):
 
     except Exception as e:
         print(f"An error occurred: {e}")
-
-def get_time_space(resfile):
-    '''
-    Extract execution time/space information from gtime or \\usr\\bin\\time output.
-
-    Args:
-        resfile (str): path to the file containing the gtime or \\usr\\bin\\time output.
-
-    Returns:
-        int: Wall clock time in seconds.
-        int: Resident set size in bytes.
-        int: CPU time in seconds.
-        str: CPU efficiency percentage.
-    '''
-    # Get resident set size from res file
-    rss_o = subprocess.check_output("awk -F ':' '{{print $2}}' {log} | sed -n '10p'".format(log=resfile),shell=True)
-    rss = int(re.search(r'\d+',rss_o.decode("utf-8")).group())
-    # Get CPU time
-    cpu_o = subprocess.check_output("awk -F ':' '{{print $2}}' {log} | sed -n '2p'".format(log=resfile),shell=True)
-    cpu = cpu_o.decode("utf-8")
-    cpu = cpu[1:-1]
-    # Get CPU efficiency
-    cpu_o = subprocess.check_output("awk -F ':' '{{print $2}}' {log} | sed -n '4p'".format(log=resfile),shell=True)
-    cpu_eff = cpu_o.decode("utf-8")
-    cpu_eff = cpu_eff[1:-1]
-    # Get Wall clock time
-    wall_clock_o = subprocess.check_output("grep \"Elapsed\" {log}".format(log=resfile), shell=True)
-    wall_clock_time = wall_clock_o.decode("utf-8").split('(h:mm:ss or m:ss):')[-1].split('\n')[0]
-    wall_clock_time = time_to_seconds(wall_clock_time)
-
-    return (wall_clock_time,rss,cpu,cpu_eff)
-
-def time_to_seconds(time_str):
-    '''
-    Convert a time string in ormat h:mm:ss or m:ss format to seconds.
-
-    Args:
-        time_str (str): the time string to convert.
-
-    Returns:
-        int: the total number of seconds.
-    '''
-    # Split the time string by colon
-    parts = time_str.split(':')
-    
-    # Initialize seconds variable
-    time_in_seconds = 0
-    
-    # Process the parts depending on their length
-    if len(parts) == 3:  # h:mm:ss format
-        hours = int(parts[0])
-        minutes = int(parts[1])
-        seconds = float(parts[2])  # float captures decimal seconds
-        time_in_seconds = hours * 3600 + minutes * 60 + seconds
-    elif len(parts) == 2:  # m:ss format
-        minutes = int(parts[0])
-        seconds = float(parts[1])  # float captures decimal seconds
-        time_in_seconds = minutes * 60 + seconds
-    else:
-        raise ValueError("Invalid time format. h:mm:ss or m:ss format expected.")
-    
-    return time_in_seconds
 
 if __name__ == '__main__':
     main()

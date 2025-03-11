@@ -30,7 +30,8 @@ public:
 
     size_t size(){ return idx->size(); }
 
-    unsigned char extract(size_t i)
+    //unsigned char extract(size_t i)
+    char extract(size_t i)
     {
         return idx->extract(i);
         /*      
@@ -117,7 +118,7 @@ public:
         */
     }
 
-    std::pair<size_t,unsigned char> LCS_char(std::string& pattern, size_t p, size_t t,
+    std::pair<size_t,char> LCS_char(std::string& pattern, size_t p, size_t t,
                                     bool adaptable_window = false)
     {
         return idx->LCS_char( pattern, p, t );
