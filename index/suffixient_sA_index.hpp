@@ -379,7 +379,8 @@ public:
 		auto start = std::chrono::high_resolution_clock::now();
 
 		auto j = this->S.locate_longest_prefix(prefix,0,prefix.size());
-
+		if( std::get<1>(j) != prefix.size() ) return std::make_pair(-1,0);
+		
 		std::chrono::duration<double> duration = 
 				std::chrono::high_resolution_clock::now() - start;
 
