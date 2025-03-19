@@ -36,6 +36,7 @@ options:
 ```
 
 You can use the suffixient-array-index.py interface to build and query the suffixient-array index (sA-index). Like the previous tool, it requires an input file that must not contain the characters 0, 1, or 2. In addition, if the `opt-sA` index variant or the `rlz|bitpacked-text` random access text oracles  are selected the input must contain DNA characters (A,C,G,T) only.
+All output files including the index files are stored using filenames prefixed by the input text filename.
 ```
 usage: suffixient-array-index.py [-h] [-v INDEX_VARIANT] [-o ORACLE_VARIANT] [-b] [-e EXTRA_EF_SPACE] [-l] [-p PATTERN_FILE] input
 
@@ -60,12 +61,14 @@ options:
 
 ```console
 // Construct a smallest suffixient set using the PFP compressed-space one-pass algorithm
-python3 build/suffixient-set.py -a PFP data/yeast.fasta 
+python3 build/suffixient-set.py -a PFP data/yeast.txt 
 
 // Construct and query the baseline suffixient-array index (sA-index)
-python3 build/suffixient-array-index.py --build-index data/yeast.fasta
-python3 build/suffixient-array-index.py --locate-one-occ -p data/yeast_patterns.fasta data/yeast.fasta
+python3 build/suffixient-array-index.py --build-index data/yeast.text
+python3 build/suffixient-array-index.py --locate-one-occ -p data/yeast_patterns.fasta data/yeast.txt
 ```
+
+Note: The last two commands generate two index files: \textit{data/yeast.txt.bai} and \textit{data/yeast.text.lz77}, and a text file containing the positions in the input text of the located patterns \textit{data/yeast_patterns.fasta.occs}.
 
 ### Datasets
 
@@ -77,6 +80,7 @@ The \texttt{suffixient-array} tool requires
 * A Linux 64-bit operating system.
 * A modern Python 3 release version 3.7 or higher.
 * A modern C++11\14 compiler such as `g++` version 4.9 or higher.
+* The zlib library installed on your system.
 
 ## Reference and citation 
 
@@ -85,6 +89,7 @@ The \texttt{suffixient-array} tool requires
 [2] Davide Cenzato, Lore Depuydt, Travis Gagie, Sung-Hwan Kim, Giovanni Manzini, Francisco Olivares, Nicola Prezza: Suffixient Arrays: a New Efficient Suffix Array Compression Technique. CoRR abs/2407.18753 (2025) ([go to the paper](https://doi.org/10.48550/arXiv.2407.18753))
 
 If you use \texttt{suffixient-array} in an academic setting, please cite this work as follows:
+
 ### suffixient-array
     @article{suffixient-array-2025,
       author       = {Davide Cenzato and

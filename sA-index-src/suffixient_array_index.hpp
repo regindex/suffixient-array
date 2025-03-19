@@ -317,7 +317,7 @@ public:
 				                          bool_t runHeuristic = false)
 	{
 		std::ifstream patterns(patternFile);
-		std::ofstream   output(patternFile+".exactPM");
+		std::ofstream   output(patternFile+".occs");
 
 		std::string line, header;
 		usafe_t i=0, c=0;
@@ -364,7 +364,7 @@ public:
 	void run_exact_pattern_matching_fasta_ef_opt(std::string patternFile)
 	{
 		std::ifstream patterns(patternFile);
-		std::ofstream   output(patternFile+".exactPM");
+		std::ofstream   output(patternFile+".occs");
 
 		std::string line, header;
 		usafe_t i=0, c=0;
