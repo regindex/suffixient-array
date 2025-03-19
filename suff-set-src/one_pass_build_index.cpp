@@ -36,7 +36,7 @@ struct lcp_maxima
 
 void help()
 {
-	cout << "Software to compute all ingredients necessary to construct different variants for the suffixient index." << endl <<
+	cout << "Software to compute all ingredients necessary to construct different variants for the suffixient array index." << endl <<
 	        "one-pass-index [options]" << endl <<
 	"Input: non-empty ASCII file without character 0x0, from standard input." << endl <<
 	"Output: depending on the index variant: smallest suffixient vector, supermaximal substrings LCS vector, right-extension multiplicities, Prefix array. " <<
@@ -45,7 +45,7 @@ void help()
 	"Options:" << endl <<
 	"-h          Print usage info." << endl <<
 	"-t          Select the index variant for which you want to compute the components" <<
-	             "(z-fastTrie|suffixientArray|prefixArray). Default: false." << endl << 
+	             "(z-fast|sA|opt-sA|PA). Default: false." << endl << 
 	"-o <arg>    Output files basepath. If not specified, output is streamed to standard output in human-readable format." << endl;
 	exit(0);
 } 
@@ -162,8 +162,8 @@ int main(int argc, char** argv)
 		}
 	}
 
-	if(index_variant != "z-fastTrie" and index_variant != "suffixientArray"
-		                             and index_variant !=     "prefixArray")
+	if(index_variant != "z-fast" and index_variant != "sA" and index_variant != "opt-sA"
+		                             					   and index_variant != "PA")
 	{
 		std::cerr << "Error! select a valid index variant..." << std::endl;
 		help();
@@ -206,7 +206,7 @@ int main(int argc, char** argv)
 	vector<uint64_t> S, A(sigma,0);
 	vector<int64_t>  L, Len, last(sigma,-1);
 
-	if(index_variant == "z-fastTrie")
+	if(index_variant == "z-fast")
 	{
 		one_pass_algorithm(R,S,Len,last);
 		{
@@ -222,7 +222,7 @@ int main(int argc, char** argv)
 		  	ofs.close();
 		}
 	}
-	else if(index_variant == "suffixientArray")
+	else if(index_variant == "sA" or index_variant == "opt-sA")
 	{
 		one_pass_algorithm(R,S,L,A);
 		{
@@ -244,10 +244,8 @@ int main(int argc, char** argv)
 	  	ofs.close();
 		}
 	}
-	else if(index_variant == "prefixArray")
+	else if(index_variant == "PA")
 	{
-		std::cout << "N = " << N << std::endl;
-		std::cout << "STORE SIZE = " << STORE_SIZE << std::endl;
 	  	string pa_output_basepath = output_basepath + ".pa";
 	  	ofstream ofs = ofstream(pa_output_basepath, ios::binary);
 	  	for (size_t i=1;i<N;++i)

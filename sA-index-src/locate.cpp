@@ -4,7 +4,7 @@
 #include <vector>
 #include <unistd.h>
 
-#include "suffixient_sA_index.hpp"
+#include "suffixient_array_index.hpp"
 
 template<class indexType, class oracleType>
 void load_index_locate(std::string textPath, std::string oraclePath, 
@@ -14,7 +14,7 @@ void load_index_locate(std::string textPath, std::string oraclePath,
                        bool_t runPrefixHeuristic = false)
 {
     // initialize the index
-    suffixient::suffixient_sA_index
+    suffixient::suffixient_array_index
             <indexType,oracleType> suff_index;
     // construct baseline index
     std::cout << "Loading the suffixient index from " 
@@ -32,13 +32,13 @@ void load_index_locate(std::string textPath, std::string oraclePath,
 }
 
 template<class oracleType>
-void load_index_locate_ef_op
+void load_index_locate_ef_opt
                       (std::string textPath, std::string oraclePath, 
                        std::string indexPath, std::string patternPath,
                        bool_t check_correctness = false)
 {
     // initialize the index
-    suffixient::suffixient_sA_index
+    suffixient::suffixient_array_index
             <suffixient::suffixient_array_elias_fano<oracleType,
                      suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>
                      ,oracleType> suff_index;
@@ -54,40 +54,15 @@ void load_index_locate_ef_op
     else
         suff_index.run_exact_pattern_matching_fasta_ef_opt(patternPath); 
 }
-/*
-template<class indexType, class oracleType>
-void load_index_locate_bitpacked(std::string textPath, 
-                                 std::string indexPath, std::string patternPath,
-                                 bool_t prefixArraySearch = false,
-                                 bool_t check_correctness = false,
-                                 bool_t runPrefixHeuristic = false)
-{
-    // initialize the index
-    suffixient::suffixient_sA_index
-            <indexType,oracleType> suff_index;
-    // construct baseline index
-    std::cout << "Loading the suffixient index from " 
-              << indexPath << std::endl;
-    suff_index.load(textPath,indexPath);
-    std::cout << "Locating the patterns in " 
-              << indexPath << std::endl;
 
-    if(check_correctness)
-        suff_index.check_exact_pattern_matching_correctness_bitpacked(
-                    patternPath,prefixArraySearch,runPrefixHeuristic);
-    else
-        suff_index.run_exact_pattern_matching_fasta_bitpacked(
-                    patternPath,prefixArraySearch,runPrefixHeuristic); 
-}
-*/
 void help(){
 
     cout << "locate [options]" << endl <<
     "Options:" << endl <<
     "-h          Print usage info." << endl <<
     "-i <arg>    Index files base path. Default: Empty." << endl <<
-    "-t <arg>    Index type (baseline|elias-fano|prefix-array). Default: baseline." << endl << 
-    "-o <arg>    Text oracle (plain|bitpacked|lz77|rlz|Hk). Default: lz77." << endl << 
+    "-t <arg>    Index variant (suffixient-array|elias-fano-opt|prefix-array). Default: suffixient-array." << endl << 
+    "-o <arg>    Random access text oracle (plain-text|bitpacked-text|lz77|rlz). Default: lz77." << endl << 
     "-p <arg>    Fasta file path containing the patterns to locate. Default: Empty." << endl <<
     "-c          Check output correctness. Default: False." << endl << 
     "-v          Activate verbosity mode. Default: false." << endl;
@@ -103,7 +78,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    std::string inputPath, patternFile, indexType = "baseline", oracleType = "lz77";
+    std::string inputPath, patternFile, indexType = "suffixient-array", oracleType = "lz77";
     bool verbose = false, correctness = false;
 
     int opt;
@@ -137,36 +112,28 @@ int main(int argc, char* argv[])
         }
     }
 
-    if(indexType == "baseline" and oracleType == "lz77")
+    if(indexType == "suffixient-array" and oracleType == "lz77")
     {
         load_index_locate
         <suffixient::suffixient_array_baseline<lz77::LZ77_compressed_text>,
                lz77::LZ77_compressed_text>
         (inputPath,inputPath+".lz77",inputPath+".bai",patternFile,false,correctness,true);
     }
-    else if(indexType == "baseline" and oracleType == "plain")
+    else if(indexType == "suffixient-array" and oracleType == "plain-text")
     {
         load_index_locate
         <suffixient::suffixient_array_baseline<suffixient::uncompressed_text_oracle>,
          suffixient::uncompressed_text_oracle>
         (inputPath,inputPath,inputPath+".bai",patternFile,false,correctness,true);
     }
-    else if(indexType == "baseline" and oracleType == "bitpacked")
+    else if(indexType == "suffixient-array" and oracleType == "bitpacked-text")
     {
-        //load_index_locate_bitpacked
         load_index_locate
         <suffixient::suffixient_array_baseline<suffixient::bitpacked_text_oracle>,
          suffixient::bitpacked_text_oracle>
         (inputPath,inputPath,inputPath+".bai",patternFile,false,correctness,true);
     }
-    else if(indexType == "baseline" and oracleType == "Hk")
-    {
-        load_index_locate
-        <suffixient::suffixient_array_baseline<Hk_Ferragina_Venturini<>>,
-         Hk_Ferragina_Venturini<>>
-        (inputPath,inputPath+".hkfv",inputPath+".bai",patternFile,false,correctness,true);
-    }
-    else if(indexType == "baseline" and oracleType == "rlz")
+    else if(indexType == "suffixient-array" and oracleType == "rlz")
     {
         load_index_locate
         <suffixient::suffixient_array_baseline<RLZ_DNA<>>,
@@ -180,27 +147,19 @@ int main(int argc, char* argv[])
                lz77::LZ77_compressed_text>
         (inputPath,inputPath+".lz77",inputPath+".pai",patternFile,true,correctness,false);
     }
-    else if(indexType == "prefix-array" and oracleType == "plain")
+    else if(indexType == "prefix-array" and oracleType == "plain-text")
     {
         load_index_locate
         <suffixient::suffix_array_binary_search<suffixient::uncompressed_text_oracle>,
          suffixient::uncompressed_text_oracle>
         (inputPath,inputPath,inputPath+".pai",patternFile,true,correctness,false);
     }
-    else if(indexType == "prefix-array" and oracleType == "bitpacked")
+    else if(indexType == "prefix-array" and oracleType == "bitpacked-text")
     {
-        //load_index_locate_bitpacked
         load_index_locate
         <suffixient::suffix_array_binary_search<suffixient::bitpacked_text_oracle>,
          suffixient::bitpacked_text_oracle>
         (inputPath,inputPath,inputPath+".pai",patternFile,true,correctness,false);
-    }
-    else if(indexType == "prefix-array" and oracleType == "Hk")
-    {
-        load_index_locate
-        <suffixient::suffix_array_binary_search<Hk_Ferragina_Venturini<>>,
-         Hk_Ferragina_Venturini<>>
-        (inputPath,inputPath+".hkfv",inputPath+".pai",patternFile,true,correctness,false);
     }
     else if(indexType == "prefix-array" and oracleType == "rlz")
     {
@@ -209,56 +168,30 @@ int main(int argc, char* argv[])
          RLZ_DNA<>>
         (inputPath,inputPath+".rlz",inputPath+".pai",patternFile,true,correctness,false);
     }
-    else if(indexType == "elias-fano" and oracleType == "lz77")
+    else if(indexType == "elias-fano-opt" and oracleType == "lz77")
     {
-        load_index_locate
-        <suffixient::suffixient_array_elias_fano<lz77::LZ77_compressed_text,
-                     suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
-                     lz77::LZ77_compressed_text>
-        (inputPath,inputPath+".lz77",inputPath+".efi",patternFile,false,correctness,true);
+        load_index_locate_ef_opt<lz77::LZ77_compressed_text>
+        (inputPath,inputPath+".lz77",inputPath+".efi",patternFile,correctness);
     }
-    else if(indexType == "elias-fano" and oracleType == "plain")
+    else if(indexType == "elias-fano-opt" and oracleType == "plain-text")
     {
-        load_index_locate
-        <suffixient::suffixient_array_elias_fano<suffixient::uncompressed_text_oracle,
-                     suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
-                     suffixient::uncompressed_text_oracle>
-        (inputPath,inputPath,inputPath+".efi",patternFile,false,correctness,true);
+        load_index_locate_ef_opt<suffixient::uncompressed_text_oracle>
+        (inputPath,inputPath,inputPath+".efi",patternFile,correctness);
     }
-    else if(indexType == "elias-fano" and oracleType == "bitpacked")
+    else if(indexType == "elias-fano-opt" and oracleType == "bitpacked-text")
     {
-        //load_index_locate_bitpacked
-        load_index_locate
-        <suffixient::suffixient_array_elias_fano<suffixient::bitpacked_text_oracle,
-                     suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
-                     suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath,inputPath+".efi",patternFile,false,correctness,true);
+        load_index_locate_ef_opt<suffixient::bitpacked_text_oracle>
+        (inputPath,inputPath,inputPath+".efi",patternFile,correctness);
     }
-    else if(indexType == "elias-fano" and oracleType == "Hk")
+    else if(indexType == "elias-fano-opt" and oracleType == "rlz")
     {
-        load_index_locate
-        <suffixient::suffixient_array_elias_fano<Hk_Ferragina_Venturini<>,
-                     suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
-                     Hk_Ferragina_Venturini<>>
-        (inputPath,inputPath+".hkfv",inputPath+".efi",patternFile,false,correctness,true);
-    }
-    else if(indexType == "elias-fano" and oracleType == "rlz")
-    {
-        /*
-        load_index_locate_ef_op
-        <suffixient::suffixient_array_elias_fano<RLZ_DNA<>,
-                     suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
-                     RLZ_DNA<>>
-        (inputPath,inputPath+".rlz",inputPath+".efi",patternFile,false,correctness,true,true);
-        */
-        load_index_locate_ef_op<RLZ_DNA<>>
+        load_index_locate_ef_opt<RLZ_DNA<>>
         (inputPath,inputPath+".rlz",inputPath+".efi",patternFile,correctness);
     }
     else{
         std::cout << "Not yet implemented..." << std::endl;
         exit(1);
     }
-    // .sdi
 
     return 0;
 }

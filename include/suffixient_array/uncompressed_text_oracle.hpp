@@ -84,11 +84,9 @@ public:
     {
         usafe_t matched_chars = 0;
         usafe_t available_chars = std::min(p+1,t+1);
-        ////std::cout << "available chars: " << available_chars << std::endl;
 
         while(available_chars > 0)
         {
-            ////std::cout << pattern[p-matched_chars] << " <***> "<< this->T[t-matched_chars] << std::endl;
             if(pattern[p-matched_chars] != this->T[t-matched_chars])
                 return std::make_pair(matched_chars,this->T[t-matched_chars]);
 
@@ -105,6 +103,6 @@ private:
    usafe_t N;
 };
 
-}  // namespace suffixient
+} 
 
-#endif  // UNCOMPRESSED_TEXT_ORACLE_HPP
+#endif

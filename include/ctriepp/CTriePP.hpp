@@ -131,7 +131,6 @@ class CTriePP {
                 //INFO(indent << "children 0");
                 out.write((char*)&no_children,sizeof(Ulong));
                 no_bytes += sizeof(Ulong);
-                //std::cout << "no_children " << no_children << std::endl;
             }
 
             return no_bytes;
@@ -149,12 +148,9 @@ class CTriePP {
 
             if(no_children > 0)
             {
-                //std::cout << "1" << std::endl;
                 microTrieIndex_ = MicroTrie::make();
                 MicroTrie::at(microTrieIndex_).load(in);
-                //std::cout << "2" << std::endl;
                 children_->load(in);
-                //std::cout << "3" << std::endl;
             }
 
             return;
@@ -286,18 +282,10 @@ class CTriePP {
         while (true) {
             Node &targetNode = Node::at(targetNodeIndex);
             Int lcpLength = getLCPLength(newSubText, targetNode.subText_);
-            /*
-            if(value == 12857)
-            {
-                std::cout << "targetNode.subText_ = " << targetNode.subText_.text_ << std::endl;
-                std::cout << "lcpLength = " << lcpLength << std::endl;
-            }*/
 
             NodeIndex nextNodeIndex;
             if (lcpLength == targetNode.subText_.size())
             {
-                /*if(value == 12857)
-                    std::cout << "entra 1" << std::endl;*/
                 if (lcpLength == newSubText.size())
                 {
                     if (targetNode.value_ == EMPTY_VALUE)
@@ -322,8 +310,6 @@ class CTriePP {
             } 
             else
             {
-                /*if(value == 12857)
-                    std::cout << "entra 2" << std::endl;*/
                 NodeIndex newNodeIndex = Node::make();
                 Node &newNode = Node::at(newNodeIndex);
                 newNode.set(LongString(targetNode.subText_, lcpLength,
@@ -336,18 +322,12 @@ class CTriePP {
                 {
                     newSubText =
                         LongString(newSubText, lcpLength, newSubText.size());
-                    /*if(value == 12857)
-                        std::cout << "new subText_: " << newSubText.text_ << std::endl;*/
+
                     Ulong key = newSubText.getLong(0);
                     if (newSubText.size() == 0) {
                         targetNode.value_ = value;
                     } else {
-                        /*if(value == 12857)
-                        {
-                            std::cout << "add here?" << std::endl;
-                            std::cout << "targetNode.value_: " << targetNode.value_ << std::endl;
-                        }*/
-                        // targetNode.value_ = EMPTY_VALUE; // <- check here
+                        // targetNode.value_ = EMPTY_VALUE;
                         newNodeIndex = Node::make();
                         Node::at(newNodeIndex).set(newSubText, value);
                         insertChild(targetNode, key, newNodeIndex);
@@ -441,17 +421,13 @@ class CTriePP {
             lcpLength =
                 getLCPLength(currentNode.subText_, pattern, from, pattern_size);
             // LOG("LCP Length : " << lcpLength);
-            ////std::cout << "LCP Length : " << lcpLength << std::endl;
             if (lcpLength == pattern_size - from) { return currentNode.value_; }
             else
             {
                 key = pattern.getLong(lcpLength + from);
-                ////std::cout << "key : " << key << std::endl;
                 if (lcpLength == currentNode.subText_.size())
                 {
-                    ////std::cout << "PRIMA" << std::endl;
                     nextNodeIndex = currentNode.getChildIndex(key);
-                    ////std::cout << "nextNodeIndex : " << nextNodeIndex << std::endl;
                     if (nextNodeIndex != Node::INDEX_NULL)
                     {
                         assert(key == (Node::at(nextNodeIndex).key()));
@@ -460,16 +436,13 @@ class CTriePP {
                     }
                     else
                     {
-                        ////std::cout << "PRIMA 2" << std::endl;
                         NodeIndex matchingKey = getKeyPrefix(currentNode, key);
-                        ////std::cout << "matchingKey: " << matchingKey << " - " << (matchingKey == Node::INDEX_NULL) << std::endl;
-                        ////std::cout << "Node::at(matchingKey).value_: " << Node::at(matchingKey).value_ << std::endl;
                         return matchingKey == Node::INDEX_NULL
                                 ? -1
                                 : Node::at(matchingKey).value_;
                     }
                 }
-                else { std::cerr << "Controllare che sia corretto!" << std::endl; exit(1);
+                else { 
                     return LongString::isCharPrefix(
                                 currentNode.subText_.getLong(lcpLength), key) == true
                                 ? currentNode.value_
@@ -485,7 +458,6 @@ class CTriePP {
 
     inline std::tuple<Ulong,Int,bool> locateLongestPrefix(const LongString &pattern) const
     {
-        ////std::cout << "#######################" << std::endl;
         NodeIndex currentNodeIndex = root_;
 
         Int pattern_size = pattern.size();
@@ -494,89 +466,39 @@ class CTriePP {
         Ulong key;
         NodeIndex nextNodeIndex;
         while (true) {
-            ////std::cout << "-----------------------" << std::endl;
             const Node &currentNode = Node::at(currentNodeIndex);
             lcpLength =
                 getLCPLength(currentNode.subText_, pattern, from, pattern_size);
             // LOG("LCP Length : " << lcpLength);
-            ////std::cout << "LCP Length : " << lcpLength << std::endl;
-            //std::cout << "from : " << from << std::endl;
-            ////std::cout << "currentNode.subText_ : " << currentNode.subText_.text_ << " " << currentNode.subText_.size() << " " << currentNode.value_ << " " << currentNode.children_ << std::endl;
-            if (lcpLength == pattern_size - from) { 
-                ////std::cout << "QUI1 from: " << from << " lcplength: " << lcpLength << " no.C: " << currentNode.children_ << std::endl;
-                //return std::make_tuple(currentNode.value_, (from+lcpLength)*LONG_PAR_CHAR, false);
-                return std::make_tuple(currentNode.value_, pattern.text_.size(), false);
-                //return (currentNode.children_ or lcpLength < currentNode.subText_.size() )
-                //       ? std::make_pair(currentNode.value_, (from+lcpLength)*LONG_PAR_CHAR*-1)
-                //       : std::make_pair(currentNode.value_, (from+lcpLength)*LONG_PAR_CHAR);
-            }
+            if (lcpLength == pattern_size - from)
+                { return std::make_tuple(currentNode.value_, pattern.text_.size(), false); }
             else
             {
-                ////std::cout << "lcpLength + from : " << lcpLength + from << std::endl;
                 key = pattern.getLong(lcpLength + from);
-                ////std::cout << "key : " << key << std::endl;
                 if (lcpLength == currentNode.subText_.size())
                 {
-                    ////std::cout << "PRIMA" << std::endl;
                     nextNodeIndex = currentNode.getChildIndex(key);
-                    ////std::cout << "nextNodeIndex : " << nextNodeIndex << std::endl;
                     if (nextNodeIndex != Node::INDEX_NULL)
                     {
-                        /*If there is another node in the compact trie */
                         assert(key == (Node::at(nextNodeIndex).key()));
                         from += lcpLength;
-                        ////std::cout << "FROM: " << from << std::endl;
-                        ////std::cout << "SIZE: " << currentNode.subText_.size() << std::endl;
                         currentNodeIndex = nextNodeIndex;
                     }
                     else
                     {
-                        ////std::cout << "QUI2" << std::endl;
-                        //std::cout << "PRIMA 2" << std::endl;
                         std::tuple<NodeIndex,Int,bool> matchingKey = getKeyLongestPrefix(currentNode, key);
-                        ////std::cout << "matchingKey: " << std::get<0>(matchingKey) << " - " << std::get<1>(matchingKey) << " -from: " << from << std::endl;
-                        //std::cout << "Node::at(matchingKey).value_: " << Node::at(matchingKey).value_ << std::endl;
-
-                        //if(std::get<0>(matchingKey) == Node::INDEX_NULL){ std::cout << "CONTROLLAAAAA" << std::endl; exit(1); }
 
                         return std::get<0>(matchingKey) == Node::INDEX_NULL
                                 ? std::make_tuple(currentNode.value_,(lcpLength+from)*LONG_PAR_CHAR,false)
                                 : std::make_tuple(Node::at(std::get<0>(matchingKey)).value_,
                                                  ((lcpLength+from)*LONG_PAR_CHAR)+std::get<1>(matchingKey),
                                                  std::get<2>(matchingKey));
-
-                        /*
-                        Int matchedLength; Ulong matchedIndex; bool mismatchFound = false;
-                        if(matchingKey.first == Node::INDEX_NULL)
-                        {
-                            matchedLength = (lcpLength+from)*LONG_PAR_CHAR;
-                            matchedIndex = currentNode.value_;
-                            //if(matchedLength < pattern.size()){ matchedLength *= -1; }
-                        }
-                        else
-                        {
-                            matchedLength = ((lcpLength+from)*LONG_PAR_CHAR)+matchingKey.second;
-                            matchedIndex = Node::at(matchingKey.first).value_;
-                            //if(matchedLength < pattern.size()){ matchedLength *= -1; }
-                            std::cout << "Matched length = " << matchedLength << " pattern size = " << pattern.text_.size() << std::endl;
-                            if(matchedLength < pattern.text_.size()){ mismatchFound = true; }
-                        }
-                        ////std::cout << "pattern_size: " << pattern.text_.size() << std::endl;
-
-                        return std::make_tuple(matchedIndex,matchedLength,mismatchFound);
-                        */
-                        /*
-                        return matchingKey.first == Node::INDEX_NULL
-                                ? std::make_pair(currentNode.value_,(lcpLength+from)*LONG_PAR_CHAR*-1)
-                                : std::make_pair(Node::at(matchingKey.first).value_,((lcpLength+from)*LONG_PAR_CHAR)+matchingKey.second);
-                        */
                     }
                 }
                 else { 
-                        /* Case dove si matcha solo una parte del testo nel nodo corrente */
                         Int lcpLength_ = LongString::getCharLCPLength(
                                 currentNode.subText_.getLong(lcpLength), key);
-                        ////std::cout << "QUI3" << std::endl;
+
                         Int matchedLength = (from+lcpLength)*LONG_PAR_CHAR+lcpLength_;
                         return std::make_tuple(currentNode.value_,matchedLength,
                                                     (matchedLength < pattern.text_.size()));

@@ -228,8 +228,8 @@ struct RLZ_DNA {
 
         size_t p_b, prefix_size_upper_bound;
         if( prefix_len == 0 ) {
-            p_b = std::min( (((uint64_t)1)<<20), text_len/1024+1 );
-            prefix_size_upper_bound = std::min( text_len, ((uint64_t)1)<<(64-2)) ;
+            p_b = std::min( (((uint64_t)1)<<20), (uint64_t)text_len/1024+1 );
+            prefix_size_upper_bound = std::min( (uint64_t)text_len, ((uint64_t)1)<<(64-2)) ;
         } else {
             p_b = prefix_len; 
             prefix_size_upper_bound = p_b+1;

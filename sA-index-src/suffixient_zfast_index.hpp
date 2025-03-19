@@ -3,10 +3,9 @@
 // by a MIT license that can be found in the LICENSE file.
 
 /*
- *  suffixient_index: DESCRIPTION
+ *  suffixient_index: suffixient-index implementation based on z-fast trie
  */
 
-// Z-FAST TRIE SUFFIXIENT INDEX BASED IMPLEMENTATION
 
 #ifndef SUFFIXIENT_INDEX_HPP_
 #define SUFFIXIENT_INDEX_HPP_
@@ -33,7 +32,6 @@ public:
 	std::pair<safe_t,safe_t> build(const std::string &text, const std::string &suffixient,
 		                                                  bool verbose = false)
 	{
-		// BEUILD PREFIX SEARCH DATA STRUCTURE //
 		std::vector<uint_t> suffixient_set;
 		safe_t tot_inserted_char = 0, tot_inserted_keywords = 0;
 	    // Open the file in binary mode
@@ -90,7 +88,6 @@ public:
 	    	std::cout << "Tot inserted keywords: " << tot_inserted_keywords << std::endl;
 	    }
 
-	    // BEUILD LCP LCS DATA STRUCTURE //
 	    G.build(text,8);
 
 	    return std::make_pair(tot_inserted_char, tot_inserted_keywords);
@@ -100,7 +97,6 @@ public:
 	std::pair<safe_t,safe_t> build(const std::string &text, const std::string &suffixient,
 		                         		   const std::string &lcs, bool verbose = false)
 	{
-		// BUILD LCP LCS DATA STRUCTURE //
 		std::cout << "Constructing LCP/LCS data structure for " << text << std::endl;
 	    G.build(text);
 		// BUILD PREFIX-SEARCH DATA STRUCTURE //
@@ -212,22 +208,18 @@ public:
 		return ;
 	} */
 
-	// 
 	Ulong locate_prefix(std::string pattern){ return Z.locatePrefix(pattern); }
 
-	//
 	std::tuple<Ulong,Int,bool> locate_longest_prefix(std::string pattern){
 		return Z.locateLongestPrefix(pattern);
 	}
 
-	//
 	std::string get_longest_match_seq(std::string pattern){
 		return Z.getLongestMatchSeq(pattern);
 	}
 
 	void find_MEMs(string& pattern, std::ofstream& output)
 	{
-		////std::cout << "##### FINDING MEMs for " << pattern << std::endl;
 		size_t i = 0, l = 0, m = pattern.size();
 		int64_t pstart = 0;
 		while(i < m)

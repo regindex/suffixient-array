@@ -3,7 +3,7 @@
 // by a MIT license that can be found in the LICENSE file.
 
 /*
- *  suffixient_array_baseline: DESCRIPTION
+ *  suffixient_array_baseline: Baseline suffixient array index implementation
  */
 
 #ifndef SUFFIXIENT_ARRAY_BASELINE_HPP_
@@ -41,9 +41,7 @@ public:
 	    {
 	    	a = get_5bytes_uint(&buffer[0]);
 	    	if(a > 0 and dna_to_code_table[i] > 3)
-	    		{ std::cerr << "Warn: Non DNA character detected!" << std::endl; 
-	    		  //exit(1); }
-	    		}
+	    		{ std::cerr << "Warn: Non DNA character detected!" << std::endl; }
 	    	this->alph[i] = a;
 	    	i++;
 	    }
@@ -84,9 +82,6 @@ public:
 			std::endl << "Text size = " << this->N <<
 			std::endl << "N/S = " << double(this->N)/S <<
 			std::endl << "Suffixient array = ";
-			/*for(i=0;i<this->S;++i)
-				std::cout << this->Suff[i] << " ";
-			std::cout << std::endl;*/
 		}
 	}
 
@@ -123,13 +118,10 @@ public:
 	std::tuple<uint_t,uint_t,bool_t> 
 		locate_longest_prefix(std::string& pattern,uint_t pstart,uint_t pend) const
 	{
-		////std::cout << "locate_longest_prefix = " << pattern.substr(pstart,pend-pstart) << std::endl;
 		// initialize binary search parameters
 		uint_t low, mid, high, plen;
 		int_t lcp_low, lcp_high, lcp_mid;
 		plen = pend - pstart;
-		//low  = this->alph[dna_to_code_table[pattern[pend-1]]];
-		//high = this->alph[dna_to_code_table[pattern[pend-1]]+1];
 		low  = this->alph[pattern[pend-1]];
 		high = this->alph[pattern[pend-1]+1];
 
@@ -144,18 +136,14 @@ public:
 			}
 		else
 			return std::make_tuple(-1,0,true);
-		////std::cout << "low = " << low << " - " << " high = " << high << std::endl;
 
 		while( high-low > 1 )
-		{
-			////std::cout << "computing LCS with : " << this->Suff[mid] << std::endl;			
+		{		
 			auto j = O->LCS_char(pattern,pend-1,this->Suff[mid]); 
 	
 			if(j.first == plen)
 				return std::make_tuple(this->Suff[mid],plen,false); 		
-
-			////std::cout << "pend: " << pend << std::endl;
-			////std::cout << "-- " << j.first << " - " << j.second << " <-> " << pattern[pend-j.first-1] << std::endl; 
+ 
 			if(j.second > pattern[pend-j.first-1]){
 				high = mid;
 				lcp_high = j.first;
@@ -167,69 +155,6 @@ public:
 			mid = (low+high)/2;
 		}
 
-		////std::cout << "lcp_low= " <<  lcp_low << " - lcp_high = " << lcp_high << std::endl;
-
-		if(lcp_low  == -1){ lcp_low  = O->LCS_char(pattern,pend-1,Suff[low]).first; }
-		if(lcp_high == -1){ lcp_high = O->LCS_char(pattern,pend-1,Suff[high]).first;}
-
-		if(lcp_low >= lcp_high){
-			mid = low;
-			lcp_mid = lcp_low;
-		}
-		else{
-			mid = high;
-			lcp_mid = lcp_high;
-		}
-		
-		/*std::cout << "ritorna " << this->Suff[middle] 
-								 << " " << matched << " " 
-								 << (matched == plen) << std::endl;*/
-
-		return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
-	}
-	/*
-	std::tuple<uint_t,uint_t,bool_t> 
-		locate_longest_prefix(sdsl::int_vector<2>& pattern,uint_t pstart,uint_t pend) const
-	{
-		// initialize binary search parameters
-		uint_t low, mid, high, plen;
-		int_t lcp_low, lcp_high, lcp_mid;
-		plen = pend - pstart;
-		low  = this->alph[ code_to_dna_table[pattern[pend-1]]   ];
-		high = this->alph[ code_to_dna_table[pattern[pend-1]]+1 ];
-
-		// stop if first pattern character doesn't occur in the text
-		if((high - low) > 0)
-			{ 
-				high--;
-				lcp_low = lcp_high = -1; 
-				mid = (low+high)/2;
-				if(plen == 1)
-					return std::make_tuple(this->Suff[mid],1,false);
-			}
-		else
-			return std::make_tuple(-1,0,true);
-		////std::cout << "low = " << low << " - " << " high = " << high << std::endl;
-
-		while( high-low > 1 )
-		{
-			////std::cout << "computing LCS with : " << this->Suff[mid] << std::endl;			
-			auto j = O->LCS_char(pattern,pend-1,this->Suff[mid]); 
-	
-			if(j.first == plen)
-				return std::make_tuple(this->Suff[mid],plen,false); 		
-
-			if(j.second > code_to_dna_table[pattern[pend-j.first-1]]){
-				high = mid;
-				lcp_high = j.first;
-			}
-			else{
-				low = mid;
-				lcp_low = j.first;
-			}
-			mid = (low+high)/2;
-		}
-
 		if(lcp_low  == -1){ lcp_low  = O->LCS_char(pattern,pend-1,Suff[low]).first; }
 		if(lcp_high == -1){ lcp_high = O->LCS_char(pattern,pend-1,Suff[high]).first;}
 
@@ -244,19 +169,16 @@ public:
 
 		return std::make_tuple(this->Suff[mid],lcp_mid,(lcp_mid != plen));
 	}
-	*/
+
 private:
-	//
+
 	text_oracle* O;
-	//
-	usafe_t N;
-	//
+
 	sdsl::int_vector<> Suff;
-	//
-	uint_t S;
-	//
 	sdsl::int_vector<> alph;
-	//
+
+	uint_t S;
+	usafe_t N;
 	int_t len;
 };
 

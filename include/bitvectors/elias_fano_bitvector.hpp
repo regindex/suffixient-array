@@ -28,7 +28,6 @@ public:
 		sdsl::sd_vector_builder builder(bsize,onset.size());
 		for(auto idx: onset){ builder.set(idx); }
 		bv = sdsl::sd_vector<>(builder);
-		// onset.clear(); 
 		// set bitvector len
 		n = bv.size();
 	}

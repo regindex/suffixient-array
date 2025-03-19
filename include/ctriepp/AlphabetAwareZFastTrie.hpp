@@ -435,15 +435,11 @@ class AlphabetAwareZFastTrie {
     inline Ulong getPrefix(const Ulong &pattern) const
     {
         NodeIndex nodeIndex = getExitNodeIndex(pattern);
-        ////std::cout << "ExitNodeIndex: " << nodeIndex << " - " << Node::at(nodeIndex).extent_ << std::endl;
-        //std::cout << "Node::INDEX_NULL: " << Node::INDEX_NULL << std::endl;
         bool matched = (nodeIndex == Node::INDEX_NULL
                         ? false
                         : LongString::isCharPrefix(Node::at(nodeIndex).extent_,
                                                    pattern));
-        ////std::cout << "matched: " << int(matched) << std::endl;
-        ////std::cout << "leftmost: " << Node::at(nodeIndex).getLeftmostLeaf() << std::endl;
-        //exit(1);
+
         return matched == false
             ? -1
             : Node::at(nodeIndex).getLeftmostLeaf();
@@ -452,39 +448,20 @@ class AlphabetAwareZFastTrie {
     inline std::tuple<Ulong,Int,bool> getLongestPrefix(const Ulong &pattern) const
     {
         NodeIndex nodeIndex = getExitNodeIndex(pattern);
-        ////std::cout << "pattern: " << pattern << std::endl;
-        ////std::cout << "ExitNodeIndex: " << nodeIndex << " - " << Node::at(nodeIndex).extent_ << std::endl;
-        //std::cout << "Node::INDEX_NULL: " << Node::INDEX_NULL << std::endl;
         Ulong nodeExtent = Node::at(nodeIndex).extent_;
         Int matchedLength = (nodeIndex == Node::INDEX_NULL
                             ? -1
                             : LongString::getCharLCPLength(nodeExtent,
                                                            pattern));
-        ////std::cout << "Matched length = " << matchedLength << std::endl;
 
         if(matchedLength == -1){ return std::make_tuple(Ulong(-1),0,false); }
         else
         {
             bool mismatchFound = ((matchedLength < LongString::charSize(pattern)) and 
                                   (matchedLength < LongString::charSize(nodeExtent)));
-            //std::cout << "mismatchFound: " << !noMismatchFound << std::endl;
+
             return std::make_tuple(Ulong(Node::at(nodeIndex).value_),matchedLength,mismatchFound);
         }
-
-        /*
-        bool mismatch = (matchedLength == LongString::charSize(no))
-        std::cout << "Node::at(nodeIndex).extent_: " << Node::at(nodeIndex).extent_ << " - " << int(Node::at(nodeIndex).nameLength_) << std::endl;
-        std::cout << "matched: " << int(matchedLength) << std::endl;
-        std::cout << "pattern: " << pattern << std::endl;
-        auto pp = LongString::getCharLCPLengthMismatch(Node::at(nodeIndex).extent_,
-                                                           pattern);
-        std::cout << pp.first << " - " << pp.second << std::endl;
-        exit(1);
-        return matchedLength == -1
-            ? std::make_tuple(Ulong(-1),0)
-            : std::make_tuple(Ulong(Node::at(nodeIndex).value_),matchedLength);
-            //: std::make_pair(Node::at(nodeIndex).getLeftmostLeaf(),matchedLength);
-        */
     }
 
     inline NodeIndex getExitNodeIndex(const Ulong &pattern) const {
@@ -598,13 +575,12 @@ class AlphabetAwareZFastTrie {
     {
         in.read(reinterpret_cast<char*>(&root_),sizeof(NodeIndex));
         in.read(reinterpret_cast<char*>(&size_),sizeof(Int));
-        //std::cout << "1.1" << std::endl;
+
         handle2NodeMap_.load(in);
-        //std::cout << "1.2" << std::endl;
+        
         if (root_ != Node::INDEX_NULL) {
             Node::at(root_).load(in);
         }
-        //std::cout << "1.3" << std::endl;
     }
 };
 

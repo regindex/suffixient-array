@@ -3,7 +3,7 @@
 // by a MIT license that can be found in the LICENSE file.
 
 /*
- *  common.hpp: DESCRIPTION
+ *  common.hpp: Common definitions and functions file
  */
 
 #ifndef COMMON_HPP_
@@ -64,13 +64,12 @@ inline bool_t contained(safe_t s1, safe_t e1, safe_t s2, safe_t e2)
 
 void inline set_uint_DNA(uchar_t* t, std::string p)
 {
-    uchar_t bytes = ((p.size()-1)/4); // size = (2-1)/4 = 0
+    uchar_t bytes = ((p.size()-1)/4); 
     uchar_t offset = 4-(p.size()%4);
 	for(uint_t i=0;i<p.size();++i)
 		t[bytes-(i/4)] |= 
 		bit_mask_table[(dna_to_code_table[p[i]]*4)+((offset+i)%4)];
 }
-
 void inline set_uint_DNA_inv(uchar_t* t, std::string& p)
 {
     uchar_t size = p.size(); 
@@ -79,7 +78,6 @@ void inline set_uint_DNA_inv(uchar_t* t, std::string& p)
         t[((size-i-1)/4)] |= 
         bit_mask_table[(dna_to_code_table[p[size-i-1]]*4)+((offset+i)%4)];
 }
-
 void inline set_uint_DNA_inv(uchar_t* t, sdsl::int_vector<2>& p, uchar_t len, 
                                                     uint_t beg, uchar_t plen)
 {
@@ -90,7 +88,6 @@ void inline set_uint_DNA_inv(uchar_t* t, sdsl::int_vector<2>& p, uchar_t len,
         t[((size-i-1)/4)] |= 
         bit_mask_table[(p[beg+plen-i-1]*4)+((offset+i)%4)];
 }
-
 void inline set_uint_DNA_inv(uchar_t* t, std::string& p, uchar_t len, 
                                             uint_t beg, uchar_t plen)
 {
@@ -142,4 +139,4 @@ void read_file(const char *filename, std::vector<T>& ptr)
     fclose(fd);
 }
 
-#endif // COMMON_HPP_
+#endif 

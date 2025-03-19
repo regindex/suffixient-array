@@ -49,12 +49,12 @@ set(CMAKE_INSTALL_INCLUDEDIR "include")
 add_subdirectory(thirdparty)
 
 add_subdirectory(include)
-add_subdirectory(sources)
-add_subdirectory(index)
+add_subdirectory(suff-set-src)
+add_subdirectory(sA-index-src)
 
 #add_subdirectory(experiments)
 
 # Set script containing the full pipeline
 # ------------------------------------------------------------------------------
-configure_file(${PROJECT_SOURCE_DIR}/pipeline/pfp_suffixient.py ${PROJECT_BINARY_DIR}/pfp_suffixient.py)
-configure_file(${PROJECT_SOURCE_DIR}/pipeline/mems_suffixient.py ${PROJECT_BINARY_DIR}/mems_suffixient.py)
+configure_file(${PROJECT_SOURCE_DIR}/pipeline/suffixient-set.py ${PROJECT_BINARY_DIR}/suffixient-set.py)
+configure_file(${PROJECT_SOURCE_DIR}/pipeline/suffixient-array-index.py ${PROJECT_BINARY_DIR}/suffixient-array-index.py)

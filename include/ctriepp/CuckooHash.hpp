@@ -390,15 +390,10 @@ class cuckoo_hash {
     }
     const void load(std::ifstream& in)
     {
-        //std::cout << "1.1.1" << std::endl;
         in.read(reinterpret_cast<char*>(&m_buckets),sizeof(uint_fast8_t));
-        //std::cout << "1.1.2" << std::endl;
         in.read(reinterpret_cast<char*>(&m_elements),sizeof(size_t));
-        //std::cout << "1.1.3 " << capacity() << std::endl;
         m_values = new value_type(capacity());
         in.read(reinterpret_cast<char*>(m_values),capacity()*sizeof(value_type));
-        //std::cout << "1.1.4" << std::endl;
-        //exit(1);
 
         return ;
     }

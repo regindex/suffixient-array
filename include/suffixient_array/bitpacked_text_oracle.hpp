@@ -66,11 +66,9 @@ public:
     /*
     usafe_t LCP_(std::string& pattern, usafe_t p, usafe_t t)
     {
-        //std::cout << "start LCP " << pattern << " - " << p << " : " << t << std::endl;
         usafe_t matched_chars = 0;
         usafe_t available_chars = std::min((pattern.size()-p),(this->N-t));
         usafe_t available_blocks = available_chars / (64/PACKED_INT_SIZE);
-        //std::cout << available_chars << " - " << available_blocks << std::endl;
 
         while(available_blocks > 0)
         {
@@ -79,7 +77,6 @@ public:
             set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&P_int), pattern, 
                              (64/PACKED_INT_SIZE), p+matched_chars, (64/PACKED_INT_SIZE));
             usafe_t xor_int = T_int ^ P_int;
-            //std::cout << T_int << " " << P_int << " " << xor_int << std::endl;
 
             if(xor_int != 0){ return matched_chars + (__builtin_ctzll(xor_int) / PACKED_INT_SIZE); }
 
@@ -150,11 +147,9 @@ public:
     /*
     std::pair<usafe_t,char_t> LCS_char_(std::string& pattern, usafe_t p, usafe_t t)
     {
-        //std::cout << "start LCS char " << pattern << " - " << p << " : " << t << std::endl;
         usafe_t matched_chars = 0;
         usafe_t available_chars = std::min(p+1,t+1);
         usafe_t available_blocks = available_chars / (64/PACKED_INT_SIZE);
-        //std::cout << available_chars << " - " << available_blocks << std::endl;
 
         while(available_blocks > 0)
         {
@@ -164,14 +159,9 @@ public:
                              (64/PACKED_INT_SIZE), p-matched_chars-(64/PACKED_INT_SIZE)+1, (64/PACKED_INT_SIZE));
             usafe_t xor_int = T_int ^ P_int;
 
-            //std::cout << T_int << " - " << P_int << " - " << xor_int << " - " << __builtin_clzll(xor_int) - ((64/PACKED_INT_SIZE)-available_chars)*PACKED_INT_SIZE << " - "<< matched_chars + (__builtin_clzll(xor_int) / PACKED_INT_SIZE) << std::endl;
-            //exit(1);
-
             if(xor_int != 0)
             {
-                //std::cout << (matched_chars + (__builtin_ctzll(xor_int) / PACKED_INT_SIZE)) << std::endl;
                 usafe_t lcs_ = matched_chars + (__builtin_clzll(xor_int) / PACKED_INT_SIZE);
-                //std::cout << "end LCS 1" << std::endl;
                 return std::make_pair(lcs_,code_to_dna_table[this->T[t-lcs_]]);
             }
 
@@ -180,35 +170,27 @@ public:
             available_blocks--;
         }
         {
-            //std::cout << (t-matched_chars)*PACKED_INT_SIZE-(available_chars-1)*PACKED_INT_SIZE << std::endl;
             usafe_t T_int = this->T.get_int((t-matched_chars)*PACKED_INT_SIZE-(available_chars-1)*PACKED_INT_SIZE,available_chars*PACKED_INT_SIZE);
             usafe_t P_int = 0;
-            //std::cout << p-matched_chars-available_chars << std::endl;
             set_uint_DNA_inv(reinterpret_cast<uint8_t*>(&P_int), pattern, available_chars, p-matched_chars-available_chars+1, available_chars);
             usafe_t xor_int = T_int ^ P_int;
-
-            //std::cout << T_int << " - " << P_int << " - " << xor_int << " - " << __builtin_clzll(xor_int) - ((64/PACKED_INT_SIZE)-available_chars)*PACKED_INT_SIZE << std::endl;
 
             if(xor_int != 0)
             {
                 usafe_t lcs_ = matched_chars + ( (__builtin_clzll(xor_int) - ((64/PACKED_INT_SIZE)-available_chars)*PACKED_INT_SIZE) / PACKED_INT_SIZE);
-                //std::cout << "end LCS 2" << std::endl;
                 return std::make_pair(lcs_,code_to_dna_table[this->T[t-lcs_]]);
             }
 
             matched_chars += available_chars;
         }
 
-        //std::cout << "end LCS 3" << std::endl;
         return std::make_pair(matched_chars,-1);
     }
     std::pair<usafe_t,char_t> LCS_char(sdsl::int_vector<PACKED_INT_SIZE>& P, usafe_t p, usafe_t t)
     {
-        //std::cout << "start LCS char " << pattern << " - " << p << " : " << t << std::endl;
         usafe_t matched_chars = 0;
         usafe_t available_chars = std::min(p+1,t+1);
         usafe_t available_blocks = available_chars / (64/PACKED_INT_SIZE);
-        //std::cout << available_chars << " - " << available_blocks << std::endl;
 
         while(available_blocks > 0)
         {

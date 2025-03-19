@@ -13,7 +13,7 @@ using namespace sdsl;
 
 int_vector<8> T;
 int_vector_buffer<> SA;
-int_vector_buffer<> LCP_;
+int_vector_buffer<> LCP;
 
 inline uint8_t BWT(uint64_t i){
 	return SA[i] == 0 ? 0 : T[SA[i] - 1];
@@ -28,7 +28,7 @@ struct lcp_maxima{
 void help(){
 
 	cout << "suffixient [options]" << endl <<
-	"Input: non-empty ASCII file without character 0x0, from standard input. Output: smallest suffixient-nexessary set." << endl <<
+	"Input: non-empty ASCII file without character 0x0, from standard input. Output: smallest suffixient set." << endl <<
 	"Warning: if 0x0 appears, the standard input is read only until the first occurrence of 0x0 (excluded)." << endl <<
 	"Options:" << endl <<
 	"-h          Print usage info." << endl << 
@@ -38,18 +38,19 @@ void help(){
 	"-r          Print to standard output number of equal-letter runs in the BWT of reverse text. Default: false." << endl <<
 	"-t          Use alphabet of size sigma (debug only). Default: false." << endl;
 	exit(0);
-}
+} 
 
-inline void eval(uint8_t c, int64_t m, vector<lcp_maxima>& R, vector<uint64_t>& S)
+inline void eval(uint64_t sigma, int64_t m, vector<lcp_maxima>& R, vector<uint64_t>& S)
 {
-  if(m < R[c].len)
-  {
-    // process an active candidate
-    if(R[c].active)
-    	S.push_back(R[c].pos);
-    // update to inactive state
-    R[c] = {m,0,false};
-  }
+	for(uint8_t c = 1; c < sigma; ++c)
+	  if(m < R[c].len)
+		  {
+		    // process an active candidate
+		    if(R[c].active)
+		    	S.push_back(R[c].pos);
+		    // update to inactive state
+		    R[c] = {m,0,false};
+		  }
 }
 
 int main(int argc, char** argv){
@@ -132,50 +133,23 @@ int main(int argc, char** argv){
 		construct_sa<8>(cc);
 		construct_lcp_kasai<8>(cc);
 		SA = int_vector_buffer<>(cache_file_name(conf::KEY_SA, cc));
-		LCP_ = int_vector_buffer<>(cache_file_name(conf::KEY_LCP, cc));
+		LCP = int_vector_buffer<>(cache_file_name(conf::KEY_LCP, cc));
 	}
-
-	// insert LCP array in a C++ vector
-	std::vector<int64_t> LCP(N,-1);
-	for(uint64_t i=0;i<N;++i)
-		LCP[i] = LCP_[i];
 
 	vector<lcp_maxima> R(sigma,{-1,0,false}); //vector with candidate suffixient right-extensions
 	vector<uint64_t> S;
 
-  // compute pointers vector LF in the paper
-  int64_t pointers[sigma];
-  pointers[0] = 0;
-  for(int64_t i = 1; i < N; i++) {
-    if(T[SA[i - 1]] != T[SA[i]]) {
-      pointers[T[SA[i]]] = i;
-    }
-    if(T[SA[i]] == sigma - 1) {
-      break;
-    }
-  }
-
-	char c = BWT(0);
-	pointers[c]++;
-
 	for(uint64_t i=1;i<N;++i)
 	{
-		c = BWT(i);
-		pointers[c]++;
 		m = std::min(m,int64_t(LCP[i]));
 
 		if(BWT(i) != BWT(i-1))
 		{
-			for(uint64_t ip = i-1; ip < i+1; ++ip)
-			{
-				if(ip == i-1)
-					eval(BWT(ip),m,R,S);
-				else if(R[BWT(ip)].len != -1)
-					eval(BWT(ip),int64_t(LCP[pointers[BWT(ip)] - 1]) - 1,R,S);
+			eval(sigma,m,R,S);
 
-				if(int64_t(LCP[i]) > R[BWT(ip)].len and BWT(ip) != 0)
+			for(uint64_t ip = i-1; ip < i+1; ++ip)
+				if(int64_t(LCP[i]) > R[BWT(ip)].len)
 					R[BWT(ip)] = {int64_t(LCP[i]),N - SA[ip],true}; 
-			}
       // reset LCP value
       m = std::numeric_limits<int64_t>::max();
       // increment number of runs
@@ -184,8 +158,7 @@ int main(int argc, char** argv){
 	}
 
   // evaluate last active candidates
-  for(uint8_t c = 1; c < sigma; ++c)
-  	eval(c,-1,R,S);
+  eval(sigma,-1,R,S);
 
   // remove chached files
   sdsl::remove(cache_file_name(conf::KEY_TEXT, cc));
