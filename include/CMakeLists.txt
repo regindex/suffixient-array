@@ -1,14 +1,13 @@
-add_subdirectory(common)
-target_include_directories(common PUBLIC common)
+add_subdirectory(common_)
+target_include_directories(common_ PUBLIC common_)
 
-#add_subdirectory(pfp_iterator)
-#target_include_directories(pfp_iterator PUBLIC pfp_iterator)
+add_subdirectory(pfp_iterator)
+target_include_directories(pfp_iterator PUBLIC pfp_iterator)
 
 add_subdirectory(ctriepp)
 target_include_directories(ctriepp PUBLIC ctriepp)
 
 add_subdirectory(LZ)
-#target_include_directories(LZ PUBLIC LZ)
 
 add_subdirectory(bitvectors)
 target_include_directories(bitvectors PUBLIC bitvectors)

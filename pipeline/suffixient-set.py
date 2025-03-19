@@ -40,7 +40,7 @@ def main():
   parser.add_argument('-p', '--mod',    
                       help='PFP: hash modulus (def. 100)',           default=100, type=int)
   parser.add_argument('-t', '--threads',
-                      help='PFP: number of helper threads (def. 0)', default=0,   type=int)
+                      help='PFP: number of threads (def. 1)', default=1,   type=int)
   parser.add_argument('-i', '--no-invert',
                       help='PFP: do not invert the text before running the algorithm', action='store_true')
   args = parser.parse_args()
@@ -81,101 +81,53 @@ def main():
       start = time.time()
       execute_command_stdin(args.input,command,logfile,logfile_name)
 
-  elapsed_time = time.time() - start
+    elif args.algorithm == "PFP":
 
-  print("The resulting suffixient set was sent to: "+args.output+".suff")
-  print("### Elapsed time: {time} seconds".format(time=elapsed_time))
+      if not args.no_invert:
+        text = ""
+        with open(args.input,"r") as file:
+          text = file.read()
+        text = reversed(text)
+        args.input += ".inv"
+        with open(args.input,"w+") as file:
+          file.write("".join(text))
 
-  '''
-    if not args.i:
-      text = ""
-      with open(args.input,"r") as file:
-        text = file.read()
-      text = reversed(text)
-      args.input += ".inv"
-      with open(args.input,"a") as file:
-        file.write("".join(text))
-    with open(logfile_name,"a") as logfile:
-      args.logfile = logfile
-      args.logfile_name = logfile_name
       # ---------- parsing of the input file
-      start0 = start = time.time()
-      if args.t>0:
-        command = "{exe} {file} -w {wsize} -p {modulus} -t {th}".format(
-                exe = os.path.join(args.bigbwt_dir,parse_exe),
-                wsize=args.wsize, modulus = args.mod, th=args.t, file=args.input)
-      else:
-        command = "{exe} {file} -w {wsize} -p {modulus}".format(
-                exe = os.path.join(args.bigbwt_dir,parse_exe),
-                wsize=args.wsize, modulus = args.mod, file=args.input)
-      #if args.v: command += " -v"
-      #if args.f: command += " -f"
+      command = "{exe} {file} -w {wsize} -p {modulus} -t {th}".format(
+              exe = os.path.join(args.bigbwt_dir,parse_exe),
+              wsize=args.wsize, modulus = args.mod, th=args.threads, file=args.input)
+
       command += " -s"
       print("==== Parsing. Command:", command)
       if(execute_command(command,logfile,logfile_name)!=True):
         return
       print("Elapsed time: {0:.4f}".format(time.time()-start))
 
-      print("Total construction time: {0:.4f}".format(time.time()-start0))
-      # ---- print elapsed time to file
-      command = "echo Total construction time: {0:.4f}".format(time.time()-start0)
-      if(execute_command(command,logfile,logfile_name)!=True):
-        return
-
       # ---- delete intermediate files
       delete_temp_files(args,logfile,logfile_name)
 
-      print("Elapsed time: {0:.4f}".format(time.time()-start))
+      # ---- run suffixient construction
+      command = "{exe} -i {file} -w {wsize} -n {size}".format(
+              exe = os.path.join(args.bigbwt_dir,pfp_exe),
+              file = args.input, wsize = args.wsize, size =  os.path.getsize(args.input)+1)
+      command += " -o {out_file}".format(out_file=args.output+".suff")
+      #if args.o != "":
+      #  command += " -o {out_file}".format(out_file=args.o)
+      #if args.c:
+      #  command += " -p"
+      #if args.r:
+      #  command += " -r"
+      print("==== Compute suffixient set. Command:", command)
+      if(execute_command(command,logfile,logfile_name)!=True):
+        return
+      #subprocess.run(command.split())
 
-    print("==== Done")
+  elapsed_time = time.time() - start
 
-    # ---- run suffixient construction
-    command = "{exe} -i {file} -w {wsize} -n {size}".format(
-            exe = os.path.join(args.bigbwt_dir,suffixient_exe),
-            file = args.input, wsize = args.wsize, size =  os.path.getsize(args.input)+1)
-    if args.o != "":
-      command += " -o {out_file}".format(out_file=args.o)
-    if args.c:
-      command += " -p"
-    if args.r:
-      command += " -r"
-    print("==== Compute suffixient. Command:", command)
-    #if(execute_command(command,logfile,logfile_name)!=True):
-    #  return
-    subprocess.run(command.split())
+  print("The resulting suffixient set was sent to: "+args.output+".suff")
+  print("### Elapsed time: {time} seconds".format(time=elapsed_time))
 
-  # delete intermediate files
-  def delete_temp_files(args,logfile,logfile_name):
-      #if args.k==False:
-      if True:
-        print("==== Deleting temporary files.") # no need to show the command
-        command = "rm -f {file}.parse_old {file}.last {file}.bwlast {file}.ilist".format(file=args.input)
-        #command = "rm -f {file}.parse {file}.parse_old {file}.last {file}.bwlast {file}.dict {file}.ilist {file}.occ".format(file=args.input)
-        if(execute_command(command,logfile,logfile_name)!=True):
-          return
-        for i in range(args.t):
-          command = "rm -f {file}.{i}.parse_old {file}.{i}.last".format(file=args.input, i=i)
-          if(execute_command(command,logfile,logfile_name)!=True):
-            return
-        
-        command = "rm -f {file}.sai {file}.bwsai".format(file=args.input);
-        if(execute_command(command,logfile,logfile_name)!=True):
-          return
-        for i in range(args.t):
-          command = "rm -f {file}.{i}.sai".format(file=args.input, i=i)
-          if(execute_command(command,logfile,logfile_name)!=True):
-            return
-
-  # compute hash digest for a file
-  def file_digest(name,logfile):
-      try:
-        hash_command = "{exe} {infile}".format(exe=shasum_exe, infile=name)
-        hashsum = subprocess.check_output(hash_command.split(),stderr=logfile)
-        hashsum = hashsum.decode("utf-8").split()[0]
-      except:
-        hashsum = "Error!"
-      return hashsum
-  '''
+######### AUXILIARY FUNCTIONS #########
 
 # execute command: return True is everything OK, False otherwise
 def execute_command(command,logfile,logfile_name,env=None):
@@ -198,6 +150,28 @@ def execute_command_stdin(input_file,command,logfile,logfile_name,env=None):
     print("Check log file: " + logfile_name)
     return False
   return True
+
+# delete intermediate files
+def delete_temp_files(args,logfile,logfile_name):
+    #if args.k==False:
+    if True:
+      print("==== Deleting temporary files.") # no need to show the command
+      command = "rm -f {file}.parse_old {file}.last {file}.bwlast {file}.ilist".format(file=args.input)
+      #command = "rm -f {file}.parse {file}.parse_old {file}.last {file}.bwlast {file}.dict {file}.ilist {file}.occ".format(file=args.input)
+      if(execute_command(command,logfile,logfile_name)!=True):
+        return
+      for i in range(args.threads):
+        command = "rm -f {file}.{i}.parse_old {file}.{i}.last".format(file=args.input, i=i)
+        if(execute_command(command,logfile,logfile_name)!=True):
+          return
+      
+      command = "rm -f {file}.sai {file}.bwsai".format(file=args.input);
+      if(execute_command(command,logfile,logfile_name)!=True):
+        return
+      for i in range(args.threads):
+        command = "rm -f {file}.{i}.sai".format(file=args.input, i=i)
+        if(execute_command(command,logfile,logfile_name)!=True):
+          return
 
 ##########################
 if __name__ == '__main__':

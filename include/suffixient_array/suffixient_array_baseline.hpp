@@ -10,7 +10,7 @@
 #define SUFFIXIENT_ARRAY_BASELINE_HPP_
 
 #include <cmath>
-#include <common.hpp>
+#include <common_.hpp>
 #include <sdsl/int_vector.hpp>
 
 namespace suffixient{

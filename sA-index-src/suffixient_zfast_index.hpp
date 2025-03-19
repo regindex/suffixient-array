@@ -13,7 +13,7 @@
 #include <chrono>
 #include <malloc_count.h>
 // common definitions
-#include <common.hpp>
+#include <common_.hpp>
 // prefix-search data structure
 #include <CTriePP.hpp>
 // LCP/LCS data structure

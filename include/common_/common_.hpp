@@ -6,8 +6,8 @@
  *  common.hpp: Common definitions and functions file
  */
 
-#ifndef COMMON_HPP_
-#define COMMON_HPP_
+#ifndef COMMON__HPP_
+#define COMMON__HPP_
 
 #include <sys/stat.h>
 #include <cassert>

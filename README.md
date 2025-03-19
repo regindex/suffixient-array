@@ -67,6 +67,10 @@ python3 build/suffixient-array-index.py --build-index data/yeast.fasta
 python3 build/suffixient-array-index.py --locate-one-occ -p data/yeast_patterns.fasta data/yeast.fasta
 ```
 
+### Datasets
+
+You can download the datasets used to evaluate our index at the following link: https://github.com/regindex/suffixient-array/releases/download/datasets-bio-v1.0/biological.7z
+
 ### Requirements
 
 The \texttt{suffixient-array} tool requires
