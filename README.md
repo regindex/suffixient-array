@@ -68,11 +68,12 @@ python3 build/suffixient-array-index.py --build-index data/yeast.text
 python3 build/suffixient-array-index.py --locate-one-occ -p data/yeast_patterns.fasta data/yeast.txt
 ```
 
-Note: The last two commands generate two index files: \textit{data/yeast.txt.bai} and \textit{data/yeast.text.lz77}, and a text file containing the positions in the input text of the located patterns \textit{data/yeast_patterns.fasta.occs}.
+Note: The last two commands generate two index files: *data/yeast.txt.bai* and *data/yeast.text.lz77*, and a text file containing the positions in the input text of the located patterns *data/yeast_patterns.fasta.occs*.
 
 ### Datasets
 
-You can download the datasets we used to evaluate the sA-index at the following link: https://github.com/regindex/suffixient-array/releases/download/datasets-bio-v1.0/biological.7z
+You can download the datasets we used to evaluate the sA-index at the following link: https://github.com/regindex/suffixient-array/releases/download/datasets-bio-v1.0/biological.7z.
+You can download the Pizza&Chili datasets from: https://pizzachili.dcc.uchile.cl/repcorpus/real/.
 
 ### Requirements
 
