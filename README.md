@@ -35,8 +35,8 @@ options:
   -i, --no-invert       PFP: do not invert the text before running the algorithm
 ```
 
-You can use the suffixient-array-index.py interface to build and query the suffixient-array index (sA-index). Like the previous tool, it requires an input file that must not contain the characters 0, 1, or 2. In addition, if the `opt-sA` index variant or the `rlz|bitpacked-text` random access text oracles  are selected the input must contain DNA characters (A,C,G,T) only.
-All output files including the index files are stored using filenames prefixed by the input text filename.
+You can use the suffixient-array-index.py interface to build and query the suffixient-array index (sA-index). Like the previous tool, it requires an input file that must not contain the characters 0, 1, or 2. In addition, if the `opt-sA` index variant or the `rlz|bitpacked-text` random access text oracles  are selected the input must contain DNA characters (A, C, G, T) only.
+All output files including the index files are stored using filenames <b>prefixed by the input text filename</b>.
 ```
 usage: suffixient-array-index.py [-h] [-v INDEX_VARIANT] [-o ORACLE_VARIANT] [-b] [-e EXTRA_EF_SPACE] [-l] [-p PATTERN_FILE] input
 
@@ -57,6 +57,17 @@ options:
                         file containing the patterns to locate (fasta format required)
 ```
 
+### Parameter configurations
+
+You can construct the sA-index with different parameter combinations. Below is a list of the main configurations:
+
+<b> Best Performance (DNA) </b>: For the fastest index configuration on DNA sequences (A, C, G, T characters only), use: `-v opt-sA -o rlz`.  The `-v opt-sA` flag adds an Elias-Fano predecessor data structure to speed up binary search steps on the Suffixient Array, requiring only $O( \chi · (2+\log (4^l))/\chi)$ additional space of top of the Suffixient Array, where $l>0$. You can adjust $l$ by increasing the extra space allowed beyond 30% with `-e` flag.  The `-o rlz` option optimizes random access to the text by constructing a cache-efficient data structure based on the relative Lempel-Ziv (RLZ) parsing.
+
+<b> Best performance (any text) + minimal space</b>: For an efficient sA-index that works with any ASCII text, use: `-v sA -o lz77`. With this configuration the index will execute the classic binary search on the suffixient array. The random access text oracle will be implemented as a LZ77-compressed text. This configuration is also the one providing the minimal space usage for this implementation.
+
+<b>Best performance (DNA) + high space</b>: If you are working with a small DNA texts and you are interested in the best performance you can construct the sA-index with the `-v opt-sA -o bitpacked-text -e 100` configuration. The random access text oracle will be implemented as a simple bitpacked representation of the text stored in the internal memory, minimizing the random access times. 
+
+
 ### Run on Example Data
 
 ```console
@@ -64,11 +75,11 @@ options:
 python3 build/suffixient-set.py -a PFP data/yeast.txt 
 
 // Construct and query the baseline suffixient-array index (sA-index)
-python3 build/suffixient-array-index.py --build-index data/yeast.text
+python3 build/suffixient-array-index.py --build-index data/yeast.txt
 python3 build/suffixient-array-index.py --locate-one-occ -p data/yeast_patterns.fasta data/yeast.txt
 ```
 
-Note: The last two commands generate two index files: *data/yeast.txt.bai* and *data/yeast.text.lz77*, and a text file containing the positions in the input text of the located patterns *data/yeast_patterns.fasta.occs*.
+Note: The last two commands generate two index files: *data/yeast.txt.bai* and *data/yeast.txt.lz77*, and a text file containing the positions in the input text of the located patterns *data/yeast_patterns.fasta.occs*.
 
 ### Datasets
 
@@ -105,6 +116,19 @@ If you use \texttt{suffixient-array} in an academic setting, please cite this wo
       volume       = {abs/2407.18753},
       year         = {2025},
       doi          = {10.48550/ARXIV.2407.18753}
+    }
+
+### suffixient-set
+
+    @inproceedings{suffixient-set-2024,
+      author = {Davide Cenzato and 
+                Francisco Olivares 
+                and Prezza, Nicola},
+      title = {On Computing the Smallest Suffixient Set},
+      year = {2024},
+      doi = {10.1007/978-3-031-72200-4_6},
+      booktitle = {Proceedings of the 31st International Symposium on String Processing and Information Retrieval, SPIRE 2024},
+      pages = {73–87}
     }
 
 ## Funding
