@@ -61,7 +61,7 @@ options:
 
 You can construct the sA-index with different parameter combinations. Below is a list of the main configurations:
 
-<b> Best Performance (DNA) </b>: For the fastest index configuration on DNA sequences (A, C, G, T characters only), use: `-v opt-sA -o rlz`.  The `-v opt-sA` flag adds an Elias-Fano predecessor data structure to speed up binary search steps on the Suffixient Array, requiring only $O( \chi · (2+\log (4^l))/\chi)$ additional space of top of the Suffixient Array, where $l>0$. You can adjust $l$ by increasing the extra space allowed beyond 30% with `-e` flag.  The `-o rlz` option optimizes random access to the text by constructing a cache-efficient data structure based on the relative Lempel-Ziv (RLZ) parsing.
+<b> Best Performance (DNA) </b>: For the fastest index configuration on DNA sequences (A, C, G, T characters only), use: `-v opt-sA -o rlz`.  The `-v opt-sA` flag adds an Elias-Fano predecessor data structure to speed up binary search steps on the Suffixient Array, requiring only $O( \chi \cdot (2+ \log \frac{(4^l)}{\chi} ) )$ additional space of top of the Suffixient Array, where $l>0$. You can adjust $l$ by increasing the extra space allowed beyond 30% with `-e` flag.  The `-o rlz` option optimizes random access to the text by constructing a cache-efficient data structure based on the relative Lempel-Ziv (RLZ) parsing.
 
 <b> Best performance (any text) + minimal space</b>: For an efficient sA-index that works with any ASCII text, use: `-v sA -o lz77`. With this configuration the index will execute the classic binary search on the suffixient array. The random access text oracle will be implemented as a LZ77-compressed text. This configuration is also the one providing the minimal space usage for this implementation.
 
