@@ -16,7 +16,7 @@ make
 ~~~~
 
 ## Usage
-You can construct a smallest suffixient set of your input using the suffixient-set.py interface. This interface calls the C++ binaries that process the input text file and generate a suffixient set based on the chosen algorithm. Note that the input file must not contain the characters 0, 1, or 2, as they are reserved for internal use.
+You can <b>construct a smallest suffixient set</b> of your input using the suffixient-set.py interface. This interface calls the C++ binaries that process the input text file and generate a suffixient set based on the chosen algorithm. Note that the input file must not contain the characters 0, 1, or 2, as they are reserved for internal use.
 ```
 usage: suffixient-set.py [-h] [-a ALGORITHM] [-o OUTPUT] [-w WSIZE] [-p MOD] [-t THREADS] [-i] input
 
@@ -35,7 +35,7 @@ options:
   -i, --no-invert       PFP: do not invert the text before running the algorithm
 ```
 
-You can use the suffixient-array-index.py interface to build and query the suffixient-array index (sA-index). Like the previous tool, it requires an input file that must not contain the characters 0, 1, or 2. In addition, if the `opt-sA` index variant or the `rlz|bitpacked-text` random access text oracles  are selected the input must contain DNA characters (A, C, G, T) only.
+You can use the suffixient-array-index.py interface to <b>build and query the suffixient-array index</b> (sA-index). The sA-index currently supports two types of queries: locating one occurrence and finding MEMs. Like the previous tool, it requires an input file that must not contain the characters 0, 1, or 2. In addition, if the `opt-sA` index variant or the `rlz|bitpacked-text` random access text oracles are selected the input must contain DNA characters (A, C, G, T) only.
 All output files including the index files are stored using filenames <b>prefixed by the input text filename</b>.
 ```
 usage: suffixient-array-index.py [-h] [-v INDEX_VARIANT] [-o ORACLE_VARIANT] [-b] [-e EXTRA_EF_SPACE] [-l] [-p PATTERN_FILE] input
@@ -53,6 +53,7 @@ options:
   -e, --extra-ef-space EXTRA_EF_SPACE
                         opt-sA: maximum allowed extra space (percentage) on top of the suffixient-array: Def. 30
   -l, --locate-one-occ  run locate one occurrence queries
+  -m, --find-mems       run find MEMs queries
   -p, --pattern-file PATTERN_FILE
                         file containing the patterns to locate (fasta format required)
 ```
@@ -77,9 +78,10 @@ python3 build/suffixient-set.py -a PFP data/yeast.txt
 // Construct and query the baseline suffixient-array index (sA-index)
 python3 build/suffixient-array-index.py --build-index data/yeast.txt
 python3 build/suffixient-array-index.py --locate-one-occ -p data/yeast_patterns.fasta data/yeast.txt
+python3 build/suffixient-array-index.py --find-mems -p data/paper_patterns.fasta data/paper_example.txt
 ```
 
-Note: The last two commands generate two index files: *data/yeast.txt.bai* and *data/yeast.txt.lz77*, and a text file containing the positions in the input text of the located patterns *data/yeast_patterns.fasta.occs*.
+Note: The last three commands generate two index files: *data/yeast.txt.bai* and *data/yeast.txt.lz77*, a text file containing the positions in the input text of the located patterns *data/yeast_patterns.fasta.occs*, and a text file containing the Maximal Exact Matches *data/yeast_patterns.fasta.mems*.
 
 ### Datasets
 

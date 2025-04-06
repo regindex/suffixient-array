@@ -18,6 +18,7 @@ sA_src_dirname   =  os.path.join(dirname, "sA-index-src")
 step1_exe   =  os.path.join(suff_src_dirname, "one-pass-build-index")
 step2_exe   =  os.path.join(sA_src_dirname,   "build_store_sA_index")
 locate_exe  =  os.path.join(sA_src_dirname,   "locate")
+mems_exe    =  os.path.join(sA_src_dirname,   "mems")
 
 mapping   = { "sA": ".bai", "opt-sA": ".efi", "PA": ".pai" }
 mapping_2 = { "sA": "suffixient-array", "opt-sA": "elias-fano-opt", "PA": "prefix-array" }
@@ -38,6 +39,8 @@ def main():
                       default="30", type=str)
   parser.add_argument('-l', '--locate-one-occ', 
                       help='run locate one occurrence queries', action='store_true')
+  parser.add_argument('-m', '--find-mems', 
+                      help='run find MEMs queries', action='store_true')
   parser.add_argument('-p', '--pattern-file', 
                       help='file containing the patterns to locate (fasta format required)', type=str)
   #parser.add_argument('-o', '--output', 
@@ -86,7 +89,20 @@ def main():
                 pattf  = args.pattern_file)
       execute_command(command,logfile,logfile_name)
 
-      print("The results were sent to: "+args.pattern_file+".exactPM")
+      print("The results were sent to: "+args.pattern_file+".occs")
+
+    if args.find_mems:
+
+      print("Finding MEMs of the patterns in:",args.pattern_file)
+      command = "{exe} -i {ifile} -t {itype} -o {oracle} -p {pattf}".format(
+                exe    = mems_exe,
+                ifile  = args.input,
+                itype  = mapping_2[args.index_variant],
+                oracle = args.oracle_variant,
+                pattf  = args.pattern_file)
+      execute_command(command,logfile,logfile_name)
+
+      print("The results were sent to: "+args.pattern_file+".mems")
 
 
     elapsed_time = time.time() - start
