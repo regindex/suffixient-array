@@ -34,6 +34,12 @@ namespace suffixient{
 template<class suffArray, class textOracle>
 class suffixient_array_index{
 
+private:
+	// text oracle data structure
+	textOracle O;
+	// suffixient array search data structure
+	suffArray S;
+
 public:
 	// empty constructor
 	suffixient_array_index(){}
@@ -72,7 +78,7 @@ public:
 		S.load(in,&O);
 		in.close();
 	}
-
+	/*
 	void find_MEMs(string& pattern, std::ofstream& output)
 	{
 		size_t i = 0, l = 0, m = pattern.size();
@@ -120,6 +126,11 @@ public:
 			output << std::endl;
 		}
 	}
+
+	*/
+	/*###################################################################
+	  ################# LOCATE ONE OCCURRENCE QUERIES ###################
+	  ###################################################################*/
 
 	std::pair<usafe_t,double> locate_one_occurrence(std::string pattern)
 	{
@@ -267,142 +278,6 @@ public:
 		return std::make_pair(std::get<0>(j)-prefix.size()+1,duration.count());
 	}
 
-	std::pair<std::vector<std::pair<usafe_t,usafe_t>>,double> 
-							compute_MEMs(std::string& pattern)
-	{
-		auto start = std::chrono::high_resolution_clock::now();
-
-		size_t i = 0, l = 0, m = pattern.size();
-		int64_t pstart = 0;
-		std::vector<std::pair<usafe_t,usafe_t>> res;
-
-		while(i < m)
-		{
-			auto j = this->S.locate_longest_prefix(pattern,pstart,i+1);
-			size_t b = std::get<1>(j);
-
-			// if the current right-extension does not occur in the text
-			if(b == 0)
-			{
-				if(l > 0)
-				{
-					//std::cout << "(" << i-l << "," << l << ") ";
-					res.push_back(std::make_pair(i-l,l));
-				}
-				//std::cout << "(" << i << "," << b << ") ";
-				res.push_back(std::make_pair(i,b));
-				pstart = i = i+1;
-				l = 0;
-			}
-			else
-			{
-				if(b <= l)
-				{
-					//std::cout << "(" << i-l << "," << l << ") ";
-					res.push_back(std::make_pair(i-l,l));
-					pstart = i-l+1;
-				}
-
-				size_t f = O.LCP(pattern,i+1,std::get<0>(j)+1);
-				i = i + f + 1;
-				l = b + f;
-			}
-		}
-		if(l > 0)
-		{
-			//std::cout << "(" << i-l << "," << l << ")" << std::endl;
-			res.push_back(std::make_pair(i-l,l));
-		}
-		//else
-		//{
-		//	std::cout << std::endl;
-			//output << std::endl;
-		//}
-
-		std::chrono::duration<double> duration = 
-				std::chrono::high_resolution_clock::now() - start;
-		return std::make_pair(res,duration.count());
-	}
-
-	std::pair<std::vector<std::pair<usafe_t,usafe_t>>,double> 
-							compute_MEMs_heuristic(std::string& pattern)
-	{
-		auto start = std::chrono::high_resolution_clock::now();
-
-		usafe_t occ = -1, l = 0, m = pattern.size(),
-		                  i = std::min(S.get_len(),static_cast<int_t>(m));
-		bool_t mismatch_found, final_check = false;
-		int64_t pstart = 0;
-		std::vector<std::pair<usafe_t,usafe_t>> res;
-
-		while(i > 0)
-		{
-			auto j = this->S.locate_longest_prefix(pattern,0,i);
-			mismatch_found = std::get<2>(j);
-			if(not mismatch_found)
-			{
-				occ = std::get<0>(j);
-				l = std::get<1>(j);
-				if(i < m)
-				{
-					usafe_t f = O.LCP(pattern,i,occ+1);
-
-					i = i + f;
-					l += f; // --> init b 
-				}
-				break;
-			}
-			i--;
-		}
-
-		while(i < m)
-		{
-			auto j = this->S.locate_longest_prefix(pattern,pstart,i+1);
-			size_t b = std::get<1>(j);
-
-			// if the current right-extension does not occur in the text
-			if(b == 0)
-			{
-				if(l > 0)
-				{
-					//std::cout << "(" << i-l << "," << l << ") ";
-					res.push_back(std::make_pair(i-l,l));
-				}
-				//std::cout << "(" << i << "," << b << ") ";
-				res.push_back(std::make_pair(i,b));
-				pstart = i = i+1;
-				l = 0;
-			}
-			else
-			{
-				if(b <= l)
-				{
-					//std::cout << "(" << i-l << "," << l << ") ";
-					res.push_back(std::make_pair(i-l,l));
-					pstart = i-l+1;
-				}
-
-				size_t f = O.LCP(pattern,i+1,std::get<0>(j)+1);
-				i = i + f + 1;
-				l = b + f;
-			}
-		}
-		if(l > 0)
-		{
-			//std::cout << "(" << i-l << "," << l << ")" << std::endl;
-			res.push_back(std::make_pair(i-l,l));
-		}
-		//else
-		//{
-		//	std::cout << std::endl;
-			//output << std::endl;
-		//}
-
-		std::chrono::duration<double> duration = 
-				std::chrono::high_resolution_clock::now() - start;
-		return std::make_pair(res,duration.count());
-	}
-
 	void run_exact_pattern_matching_fasta(
 				 std::string patternFile, bool_t prefixArray  = false,
 				                          bool_t runHeuristic = false)
@@ -429,54 +304,6 @@ public:
 				output << header << std::endl;
 				if(o.first >= 0){ output << o.first << " " << line.size() << std::endl; }
 				else{ output << "-1 " << line.size() << std::endl; }
-
-				tot_duration += o.second;
-				c += line.size();
-			}
-			else{ header = line; }
-			i++;
-		}
-
-		patterns.close();
-		output.close();
-
-		std::cout << "Memory peak while running pattern matching queries = " <<
-				     malloc_count_peak() << " bytes" << std::endl
-		          << "Elapsed time while running pattern matching queries = " <<
-				     tot_duration << " sec" << std::endl
-		          << "Number of patterns = " << i/2 
-		 		  << ", Total number of characters = " << c << std::endl
-		          << "Elapsed time per pattern = " <<
-				     (tot_duration/(i/2))*1000 << " milliSec" << std::endl
-		          << "Elapsed time per character = " <<
-				     (tot_duration/(c))*1000000 << " microSec" << std::endl;
-	}
-
-	void run_MEMs_finding_fasta(
-				 std::string patternFile, bool_t runHeuristic = false)
-	{
-		std::ifstream patterns(patternFile);
-		std::ofstream   output(patternFile+".mems");
-
-		std::string line, header;
-		usafe_t i=0, c=0;
-		std::pair<std::vector<std::pair<usafe_t,usafe_t>>,double> o;
-		double tot_duration = 0;
-
-		malloc_count_reset_peak();
-
-		while(std::getline(patterns, line))
-		{
-			if(i%2 != 0)
-			{
-				//std::cout << "pattern: " << line << std::endl;
-				if(runHeuristic){ o = compute_MEMs_heuristic(line); }
-				else{ o = compute_MEMs(line); }
-
-				output << header << std::endl;
-				for(usafe_t i=0;i<o.first.size();++i)
-					output << "(" << o.first[i].first << " " << o.first[i].second << ") ";
-				output << std::endl;
 
 				tot_duration += o.second;
 				c += line.size();
@@ -543,6 +370,290 @@ public:
 		          << "Elapsed time per character = " <<
 				     (tot_duration/(c))*1000000 << " microSec" << std::endl;
 	}
+
+	/*###################################################################
+	  ######################## FIND MEMS QUERIES ########################
+	  ################################################################### */
+
+	std::pair<std::vector<std::tuple<usafe_t,usafe_t,safe_t>>,double> 
+							       compute_MEMs(std::string& pattern)
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+
+		usafe_t i = 0, l = 0, m = pattern.size();
+		safe_t pstart = 0, occ;
+		std::vector<std::tuple<usafe_t,usafe_t,safe_t>> res;
+
+		while(i < m)
+		{
+			auto j = this->S.locate_longest_prefix(pattern,pstart,i+1);
+			size_t b = std::get<1>(j);
+
+			// if the current right-extension does not occur in the text
+			if(b == 0)
+			{
+				if(l > 0)
+				{
+					//std::cout << "(" << i-l << "," << l << ") ";
+					res.push_back(std::make_tuple(i-l,l,occ-l));
+				}
+				//std::cout << "(" << i << "," << b << ") ";
+				res.push_back(std::make_tuple(i,b,-1));
+				pstart = i = i+1;
+				l = 0;
+			}
+			else
+			{
+				if(b <= l)
+				{
+					//std::cout << "(" << i-l << "," << l << ") ";
+					res.push_back(std::make_tuple(i-l,l,occ-l));
+					pstart = i-l+1;
+				}
+
+				occ = std::get<0>(j);
+				size_t f = O.LCP(pattern,i+1,occ+1);
+				i = i + f + 1;
+				l = b + f;
+				occ = occ + f + 1;
+			}
+		}
+		if(l > 0)
+		{
+			//std::cout << "(" << i-l << "," << l << ")" << std::endl;
+			res.push_back(std::make_tuple(i-l,l,occ-l));
+		}
+		//else
+		//{
+		//	std::cout << std::endl;
+			//output << std::endl;
+		//}
+
+		std::chrono::duration<double> duration = 
+				std::chrono::high_resolution_clock::now() - start;
+		return std::make_pair(res,duration.count());
+	}
+
+	std::pair<std::vector<std::tuple<usafe_t,usafe_t,safe_t>>,double> 
+						  compute_MEMs_heuristic(std::string& pattern)
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+
+		usafe_t l = 0, m = pattern.size(),
+		        i = std::min(S.get_len(),static_cast<int_t>(m));
+		bool_t mismatch_found;
+		safe_t pstart = 0, occ = -1;
+		std::vector<std::tuple<usafe_t,usafe_t,safe_t>> res;
+
+		while(i > 0)
+		{
+			auto j = this->S.locate_longest_prefix(pattern,0,i);
+			mismatch_found = std::get<2>(j);
+			if(not mismatch_found)
+			{
+				occ = std::get<0>(j);
+				l = std::get<1>(j);
+				if(i < m)
+				{
+					usafe_t f = O.LCP(pattern,i,occ+1);
+
+					i = i + f;
+					l += f; // --> init b 
+					occ = occ + f + 1;
+				}
+				break;
+			}
+			i--;
+		}
+
+		while(i < m)
+		{
+			auto j = this->S.locate_longest_prefix(pattern,pstart,i+1);
+			size_t b = std::get<1>(j);
+
+			// if the current right-extension does not occur in the text
+			if(b == 0)
+			{
+				if(l > 0)
+				{
+					//std::cout << "(" << i-l << "," << l << ") ";
+					res.push_back(std::make_tuple(i-l,l,occ-l));
+				}
+				//std::cout << "(" << i << "," << b << ") ";
+				res.push_back(std::make_tuple(i,b,-1));
+				pstart = i = i+1;
+				l = 0;
+			}
+			else
+			{
+				if(b <= l)
+				{
+					//std::cout << "(" << i-l << "," << l << ") ";
+					res.push_back(std::make_tuple(i-l,l,occ-l));
+					pstart = i-l+1;
+				}
+
+				occ = std::get<0>(j);
+				size_t f = O.LCP(pattern,i+1,occ+1);
+				i = i + f + 1;
+				l = b + f;
+				occ = occ + f + 1;
+			}
+		}
+		if(l > 0)
+		{
+			//std::cout << "(" << i-l << "," << l << ")" << std::endl;
+			res.push_back(std::make_tuple(i-l,l,occ-l));
+		}
+		//else
+		//{
+		//	std::cout << std::endl;
+			//output << std::endl;
+		//}
+
+		std::chrono::duration<double> duration = 
+				std::chrono::high_resolution_clock::now() - start;
+		return std::make_pair(res,duration.count());
+	}
+
+	std::pair<std::vector<std::tuple<usafe_t,usafe_t,safe_t>>,double> 
+						  compute_MEMs_optSA_heuristic(std::string& pattern)
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+
+		usafe_t l = 0, m = pattern.size(),
+		        i = std::min(S.get_len(),static_cast<int_t>(m));
+		bool_t mismatch_found;
+		safe_t pstart = 0, occ = -1;
+		std::vector<std::tuple<usafe_t,usafe_t,safe_t>> res;
+
+		while(i > 0)
+		{
+			auto j = this->S.locate_longest_prefix(pattern,0,i);
+			occ = std::get<0>(j);
+			l = std::get<1>(j);
+			mismatch_found = std::get<2>(j);
+
+			if((not mismatch_found) and (occ-safe_t(l)+1) >= 0)
+			{	
+				if(i < m)
+				{
+					usafe_t f = O.LCP(pattern,i,occ+1);
+
+					i = i + f;
+					l += f; // --> init b 
+					occ = occ + f + 1;
+				}
+				break;
+			}
+			i--;
+		}
+
+		while(i < m)
+		{
+			auto j = this->S.locate_longest_prefix(pattern,pstart,i+1);
+			usafe_t b = std::get<1>(j);
+			b = std::min(uint_t(b),std::get<0>(j)+1);
+
+			// if the current right-extension does not occur in the text
+			if(b == 0)
+			{
+				if(l > 0)
+				{
+					//std::cout << "(" << i-l << "," << l << ") ";
+					res.push_back(std::make_tuple(i-l,l,occ-l));
+				}
+				//std::cout << "(" << i << "," << b << ") ";
+				res.push_back(std::make_tuple(i,b,-1));
+				pstart = i = i+1;
+				l = 0;
+			}
+			else
+			{
+				if(b <= l)
+				{
+					//std::cout << "(" << i-l << "," << l << ") ";
+					res.push_back(std::make_tuple(i-l,l,occ-l));
+					pstart = i-l+1;
+				}
+
+				occ = std::get<0>(j);
+				size_t f = O.LCP(pattern,i+1,occ+1);
+				i = i + f + 1;
+				l = b + f;
+				occ = occ + f + 1;
+			}
+		}
+		if(l > 0)
+		{
+			//std::cout << "(" << i-l << "," << l << ")" << std::endl;
+			res.push_back(std::make_tuple(i-l,l,occ-l));
+		}
+		//else
+		//{
+		//	std::cout << std::endl;
+			//output << std::endl;
+		//}
+
+		std::chrono::duration<double> duration = 
+				std::chrono::high_resolution_clock::now() - start;
+		return std::make_pair(res,duration.count());
+	}
+
+	void run_MEMs_finding_fasta(
+				 std::string patternFile, bool_t runHeuristic = false,
+				                          bool_t   usingEFopt = false)
+	{
+		std::ifstream patterns(patternFile);
+		std::ofstream   output(patternFile+".mems");
+
+		std::string line, header;
+		usafe_t i=0, c=0;
+		std::pair<std::vector<std::tuple<usafe_t,usafe_t,safe_t>>,double> o;
+		double tot_duration = 0;
+
+		malloc_count_reset_peak();
+
+		while(std::getline(patterns, line))
+		{
+			if(i%2 != 0)
+			{
+				if(usingEFopt){        o = compute_MEMs_optSA_heuristic(line); }
+				else if(runHeuristic){ o = compute_MEMs_heuristic(line); }
+				else{                  o = compute_MEMs(line); }
+
+				output << header << std::endl;
+				for(usafe_t i=0;i<o.first.size();++i)
+					output << "(" << std::get<0>(o.first[i]) << " " 
+				                  << std::get<1>(o.first[i]) << " " 
+				                  << std::get<2>(o.first[i])  << ") ";
+				output << std::endl;
+
+				tot_duration += o.second;
+				c += line.size();
+			}
+			else{ header = line; }
+			i++;
+		}
+
+		patterns.close();
+		output.close();
+
+		std::cout << "Memory peak while running pattern matching queries = " <<
+				     malloc_count_peak() << " bytes" << std::endl
+		          << "Elapsed time while running pattern matching queries = " <<
+				     tot_duration << " sec" << std::endl
+		          << "Number of patterns = " << i/2 
+		 		  << ", Total number of characters = " << c << std::endl
+		          << "Elapsed time per pattern = " <<
+				     (tot_duration/(i/2))*1000 << " milliSec" << std::endl
+		          << "Elapsed time per character = " <<
+				     (tot_duration/(c))*1000000 << " microSec" << std::endl;
+	}
+
+	/*###################################################################
+	  ################### CHECK CORRECTNESS FUNCTIONS ###################
+	  ################################################################### */
 
 	bool_t check_exact_pattern_matching_correctness(     std::string textFile,
 						 std::string patternFile, bool_t prefixArray  = false,
@@ -662,12 +773,6 @@ public:
 		std::cout << "Everything's fine!" << std::endl;
 		return true;
 	}
-
-private:
-	// text oracle data structure
-	textOracle O;
-	// suffixient array search data structure
-	suffArray S;
 };
 
 }

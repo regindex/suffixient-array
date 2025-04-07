@@ -168,12 +168,12 @@ public:
 			this->bv = bitvector(tmp_bv);
 			this->ef = elias_fano_ds(onset,pow(SIGMA_DNA,this->len));
 
-			{
+			/*{
 				usafe_t bv_density = 0;
 				for(usafe_t i=0;i<tmp_bv.size();++i){ if(tmp_bv[i]){ bv_density++; } }
 				std::cout << "bv_density: " << (double)bv_density/tmp_bv.size() << std::endl;
 				std::cout << "ef_density: " << (double)onset.size()/pow(SIGMA_DNA,this->len) << std::endl;
-			}
+			}*/
 
 			file_text.close();
 		}

@@ -9,8 +9,8 @@
 template<class indexType, class oracleType>
 void load_index_mems(std::string textPath, std::string oraclePath, 
                        std::string indexPath, std::string patternPath,
-                       bool_t runPrefixHeuristic = false)
-                       //bool_t check_correctness = false)
+                       bool_t runPrefixHeuristic = false,
+                       bool_t runEFopt = false)
 {
     // initialize the index
     suffixient::suffixient_array_index
@@ -27,7 +27,7 @@ void load_index_mems(std::string textPath, std::string oraclePath,
     //               textPath,patternPath,prefixArraySearch,runPrefixHeuristic);
     //else
     suff_index.run_MEMs_finding_fasta(
-                   patternPath,runPrefixHeuristic); 
+                   patternPath,runPrefixHeuristic,runEFopt); 
 }
 
 void help(){
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
                                                  suffixient::elias_fano_bitvector,
                                                  suffixient::succinct_bitvector>,
          lz77::LZ77_compressed_text>
-        (inputPath,inputPath+".lz77",inputPath+".efi",patternFile,true);
+        (inputPath,inputPath+".lz77",inputPath+".efi",patternFile,true,true);
     }
     else if(indexType == "elias-fano-opt" and oracleType == "plain-text")
     {
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
                                                  suffixient::elias_fano_bitvector,
                                                  suffixient::succinct_bitvector>,
          suffixient::uncompressed_text_oracle>
-        (inputPath,inputPath,inputPath+".efi",patternFile,true);
+        (inputPath,inputPath,inputPath+".efi",patternFile,true,true);
     }
     else if(indexType == "elias-fano-opt" and oracleType == "bitpacked-text")
     {
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
                                                  suffixient::elias_fano_bitvector,
                                                  suffixient::succinct_bitvector>,
          suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath,inputPath+".efi",patternFile,true);
+        (inputPath,inputPath,inputPath+".efi",patternFile,true,true);
     }
     else if(indexType == "elias-fano-opt" and oracleType == "rlz")
     {
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
                                                  suffixient::elias_fano_bitvector,
                                                  suffixient::succinct_bitvector>,
          RLZ_DNA<>>
-        (inputPath,inputPath+".rlz",inputPath+".efi",patternFile,true);
+        (inputPath,inputPath+".rlz",inputPath+".efi",patternFile,true,true);
     }
     else{
         std::cout << "Not yet implemented..." << std::endl;
