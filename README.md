@@ -15,10 +15,18 @@ cmake ..
 make
 ~~~~
 
+### Requirements
+
+The \texttt{suffixient-array} tool requires
+* A Linux 64-bit operating system.
+* A modern Python 3 release version 3.7 or higher.
+* A modern C++11\14 compiler such as `g++` version 4.9 or higher.
+* The zlib library installed on your system.
+
 ## Usage
 You can <b>construct a smallest suffixient set</b> of your input using the suffixient-set.py interface. This interface calls the C++ binaries that process the input text file and generate a suffixient set based on the chosen algorithm. Note that the input file must not contain the characters 0, 1, or 2, as they are reserved for internal use.
 ```
-usage: suffixient-set.py [-h] [-a ALGORITHM] [-o OUTPUT] [-w WSIZE] [-p MOD] [-t THREADS] [-i] input
+usage: suffixient-set.py [-h] [-a ALGORITHM] [-o OUTPUT] [-w WSIZE] [-p MOD] [-t THREADS] input
 
 positional arguments:
   input                 input file name
@@ -32,7 +40,6 @@ options:
   -p, --mod MOD         PFP: hash modulus (def. 100)
   -t, --threads THREADS
                         PFP: number of helper threads (def. 0)
-  -i, --no-invert       PFP: do not invert the text before running the algorithm
 ```
 
 You can use the suffixient-array-index.py interface to <b>build and query the suffixient-array index</b> (sA-index). The sA-index currently supports two types of queries: locating one occurrence and finding MEMs. Like the previous tool, it requires an input file that must not contain the characters 0, 1, or 2. In addition, if the `opt-sA` index variant or the `rlz|bitpacked-text` random access text oracles are selected the input must contain DNA characters (A, C, G, T) only.
@@ -81,20 +88,22 @@ python3 build/suffixient-array-index.py --locate-one-occ -p data/yeast_patterns.
 python3 build/suffixient-array-index.py --find-mems -p data/paper_patterns.fasta data/paper_example.txt
 ```
 
-Note: The last three commands generate two index files: *data/yeast.txt.bai* and *data/yeast.txt.lz77*, a text file containing the positions in the input text of the located patterns *data/yeast_patterns.fasta.occs*, and a text file containing the Maximal Exact Matches *data/yeast_patterns.fasta.mems*.
+Note: The last three commands generate two index files, *data/yeast.txt.bai* and *data/yeast.txt.lz77*, as well as two text files: one containing the positions of the located patterns in the input text *data/yeast_patterns.fasta.occs*, and one containing the Maximal Exact Matches *data/yeast_patterns.fasta.mems*.
 
 ### Datasets
 
-You can download the datasets we used to evaluate the sA-index at the following link: https://github.com/regindex/suffixient-array/releases/download/datasets-bio-v1.0/biological.7z.
+You can download the datasets we used to test and evaluate the sA-index at the following link: https://github.com/regindex/suffixient-array/releases/download/datasets-bio-v1.0/biological.7z.
 You can download the Pizza&Chili datasets from: https://pizzachili.dcc.uchile.cl/repcorpus/real/.
 
-### Requirements
+### External resources
 
-The \texttt{suffixient-array} tool requires
-* A Linux 64-bit operating system.
-* A modern Python 3 release version 3.7 or higher.
-* A modern C++11\14 compiler such as `g++` version 4.9 or higher.
-* The zlib library installed on your system.
+Below is a list of external software resources used in this software.
+
+* [pfp-thresholds](https://github.com/maxrossi91/pfp-thresholds.git)
+* [Big-BWT](https://github.com/alshai/Big-BWT)
+* [gSACA-K](https://github.com/felipelouza/gsa-is.git)
+* [malloc_count](https://github.com/bingmann/malloc_count)
+* [sdsl-lite](https://github.com/simongog/sdsl-lite)
 
 ## Reference and citation 
 
@@ -132,6 +141,10 @@ If you use \texttt{suffixient-array} in an academic setting, please cite this wo
       booktitle = {Proceedings of the 31st International Symposium on String Processing and Information Retrieval, SPIRE 2024},
       pages = {73–87}
     }
+
+## Contacts
+
+If you notice any bugs, please feel free to report them by opening a Git issue or by contacting us at davidecenzato Unive email.
 
 ## Funding
 

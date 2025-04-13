@@ -10,21 +10,14 @@ used internally by our construction algorithms.
 
 dirname         =  os.path.dirname(os.path.abspath(__file__))
 
-bigbwt_dirname  =  os.path.join(dirname, "_deps/bigbwt-build")
-src_dirname   =  os.path.join(dirname, "suff-set-src")
+bigbwt_dirname  =  os.path.join(dirname, "pfp-src")
+src_dirname     =  os.path.join(dirname, "suff-set-src")
 
-parse_exe       =  os.path.join(bigbwt_dirname, "pscan.x")
-parsebwt_exe    =  os.path.join(bigbwt_dirname, "bwtparse")
-parsebwt_exe64  =  os.path.join(bigbwt_dirname, "bwtparse64")
-pfbwt_exe       =  os.path.join(bigbwt_dirname, "pfbwt.x")
-pfbwtNT_exe     =  os.path.join(bigbwt_dirname, "pfbwtNT.x")
-pfbwt_exe64     =  os.path.join(bigbwt_dirname, "pfbwt64.x")
-pfbwtNT_exe64   =  os.path.join(bigbwt_dirname, "pfbwtNT64.x")
-
-pfp_exe         =  os.path.join(src_dirname,  "pfp_suffixient")
-one_pass_exe    =  os.path.join(src_dirname,  "one-pass")
-linear_exe      =  os.path.join(src_dirname,  "linear-time")
-fm_exe          =  os.path.join(src_dirname,  "fm")
+parse_exe       =  os.path.join(bigbwt_dirname, "pscan")
+pfp_exe         =  os.path.join(src_dirname,    "pfp_suffixient")
+one_pass_exe    =  os.path.join(src_dirname,    "one-pass")
+linear_exe      =  os.path.join(src_dirname,    "linear-time")
+fm_exe          =  os.path.join(src_dirname,    "fm")
 
 def main():
   parser = argparse.ArgumentParser(description=Description, formatter_class=argparse.RawTextHelpFormatter)
@@ -41,8 +34,6 @@ def main():
                       help='PFP: hash modulus (def. 100)',           default=100, type=int)
   parser.add_argument('-t', '--threads',
                       help='PFP: number of threads (def. 1)', default=1,   type=int)
-  parser.add_argument('-i', '--no-invert',
-                      help='PFP: do not invert the text before running the algorithm', action='store_true')
   args = parser.parse_args()
 
   # define output basepath
@@ -63,6 +54,7 @@ def main():
       command = "{exe} -o {ofile}".format(
                 exe = one_pass_exe,
                 ofile=args.output+".suff")
+      print(command)
       execute_command_stdin(args.input,command,logfile,logfile_name)
 
     elif args.algorithm == "linear":
@@ -83,15 +75,6 @@ def main():
 
     elif args.algorithm == "PFP":
 
-      if not args.no_invert:
-        text = ""
-        with open(args.input,"r") as file:
-          text = file.read()
-        text = reversed(text)
-        args.input += ".inv"
-        with open(args.input,"w+") as file:
-          file.write("".join(text))
-
       # ---------- parsing of the input file
       command = "{exe} {file} -w {wsize} -p {modulus} -t {th}".format(
               exe = os.path.join(args.bigbwt_dir,parse_exe),
@@ -111,16 +94,10 @@ def main():
               exe = os.path.join(args.bigbwt_dir,pfp_exe),
               file = args.input, wsize = args.wsize, size =  os.path.getsize(args.input)+1)
       command += " -o {out_file}".format(out_file=args.output+".suff")
-      #if args.o != "":
-      #  command += " -o {out_file}".format(out_file=args.o)
-      #if args.c:
-      #  command += " -p"
-      #if args.r:
-      #  command += " -r"
+
       print("==== Compute suffixient set. Command:", command)
       if(execute_command(command,logfile,logfile_name)!=True):
         return
-      #subprocess.run(command.split())
 
   elapsed_time = time.time() - start
 

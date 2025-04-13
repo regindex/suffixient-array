@@ -50,8 +50,9 @@ inline void eval(int64_t l, uint64_t& size, std::vector<lcp_maxima>& R,
       if(R[c].active)
       {
         size++;
-        if(output_file.length() == 0)
+        if(output_file.length() == 0){
           std::cout << R[c].pos << " ";
+        }
         else
           if (fwrite(&R[c].pos, SSABYTES, 1, suffixient_file) != 1)
             error("S write error 1");
@@ -125,7 +126,9 @@ int main(int argc, char* const argv[])
   // move forward pfp iterator to first position
   uint64_t i=1; ++iter; 
   char p = iter.get_bwt(), c;
+  //std::cout << p;
   uint64_t p_sa = iter.get_sa(), c_sa;
+  //std::cout << p_sa << " ";
   
   uint64_t bwtruns=1, suffixient_size=0; //tot_size = 1;
   int64_t m = std::numeric_limits<int64_t>::max();
@@ -139,6 +142,7 @@ int main(int argc, char* const argv[])
     m = std::min(m,int64_t(iter.get_lcp()));
     c = iter.get_bwt();
     c_sa = iter.get_sa();
+    //std::cout << c_sa << " ";
     //tot_size++;
 
     if(c != p)

@@ -1,18 +1,5 @@
 include(FetchContent)
 
-## Add pfp-thresholds
-FetchContent_Declare(
-  pfplcp
-  GIT_REPOSITORY https://github.com/maxrossi91/pfp-thresholds.git
-)
-
-FetchContent_GetProperties(pfplcp)
-if(NOT pfplcp_POPULATED)
-  FetchContent_Populate(pfplcp)
-
-  add_subdirectory(${pfplcp_SOURCE_DIR} ${pfplcp_BINARY_DIR})
-  endif()
-
 ## Add malloc_count
 FetchContent_Declare(
   malloc_count
@@ -65,4 +52,22 @@ if(NOT divsufsort_POPULATED)
 
   target_include_directories(divsufsort PUBLIC "${divsufsort_BINARY_DIR}/include")
   target_include_directories(divsufsort64 PUBLIC "${divsufsort_BINARY_DIR}/include")
+endif()
+
+## Add gsacak
+FetchContent_Declare(
+  gsacak
+  GIT_REPOSITORY https://github.com/felipelouza/gsa-is.git
+)
+
+FetchContent_GetProperties(gsacak)
+if(NOT gsacak_POPULATED)
+    FetchContent_Populate(gsacak)
+    add_library(gsacak OBJECT ${gsacak_SOURCE_DIR}/gsacak.c ${gsacak_SOURCE_DIR}/gsacak.h)
+    target_include_directories(gsacak PUBLIC "${gsacak_SOURCE_DIR}")
+    
+    add_library(gsacak64 OBJECT ${gsacak_SOURCE_DIR}/gsacak.c ${gsacak_SOURCE_DIR}/gsacak.h)
+    target_include_directories(gsacak64 PUBLIC "${gsacak_SOURCE_DIR}")
+    target_compile_options(gsacak64 PUBLIC -DM64)
+  # add_subdirectory(${gsacak_SOURCE_DIR} ${gsacak_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()

@@ -9,7 +9,8 @@
 #ifndef _PFP_ITERATOR_HH
 #define _PFP_ITERATOR_HH
 
-#include <common.hpp>
+//#include <common.hpp>
+#include "common.hpp"
 
 #include <sdsl/rmq_support.hpp>
 #include <sdsl/int_vector.hpp>
@@ -18,8 +19,10 @@ extern "C"
 #include <gsacak.h>
 }
 
-#include <pfp.hpp>
-#include <priority_queue.hpp>
+//#include <pfp.hpp>
+//#include <priority_queue.hpp>
+#include "pfp.hpp"
+#include "priority_queue.hpp"
 
 class pfp_iterator{
 public:

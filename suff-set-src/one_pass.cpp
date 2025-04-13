@@ -136,6 +136,9 @@ int main(int argc, char** argv){
 		LCP = int_vector_buffer<>(cache_file_name(conf::KEY_LCP, cc));
 	}
 
+	//for(uint64_t i=0;i<N;++i){ std::cout << SA[i] << " "; }
+	//std::cout << std::endl;
+
 	vector<lcp_maxima> R(sigma,{-1,0,false}); //vector with candidate suffixient right-extensions
 	vector<uint64_t> S;
 

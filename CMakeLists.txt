@@ -51,6 +51,7 @@ add_subdirectory(thirdparty)
 add_subdirectory(include)
 add_subdirectory(suff-set-src)
 add_subdirectory(sA-index-src)
+add_subdirectory(pfp-src)
 
 #add_subdirectory(experiments)
 
