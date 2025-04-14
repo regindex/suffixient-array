@@ -92,56 +92,56 @@ int main(int argc, char* argv[])
         load_index_mems
         <suffixient::suffixient_array_baseline<lz77::LZ77_compressed_text>,
                lz77::LZ77_compressed_text>
-        (inputPath,inputPath+".lz77",inputPath+".bai",patternFile,true);
+        (inputPath,inputPath+".lz77",inputPath+".sA",patternFile,true);
     }
     else if(indexType == "suffixient-array" and oracleType == "plain-text")
     {
         load_index_mems
         <suffixient::suffixient_array_baseline<suffixient::uncompressed_text_oracle>,
          suffixient::uncompressed_text_oracle>
-        (inputPath,inputPath,inputPath+".bai",patternFile,true);
+        (inputPath,inputPath,inputPath+".sA",patternFile,true);
     }
     else if(indexType == "suffixient-array" and oracleType == "bitpacked-text")
     {
         load_index_mems
         <suffixient::suffixient_array_baseline<suffixient::bitpacked_text_oracle>,
          suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath,inputPath+".bai",patternFile,true);
+        (inputPath,inputPath,inputPath+".sA",patternFile,true);
     }
     else if(indexType == "suffixient-array" and oracleType == "rlz")
     {
         load_index_mems
         <suffixient::suffixient_array_baseline<RLZ_DNA<>>,
          RLZ_DNA<>>
-        (inputPath,inputPath+".rlz",inputPath+".bai",patternFile,true);
+        (inputPath,inputPath+".rlz",inputPath+".sA",patternFile,true);
     }
     else if(indexType == "prefix-array" and oracleType == "lz77")
     {
         load_index_mems
         <suffixient::suffix_array_binary_search<lz77::LZ77_compressed_text>,
                lz77::LZ77_compressed_text>
-        (inputPath,inputPath+".lz77",inputPath+".pai",patternFile,true);
+        (inputPath,inputPath+".lz77",inputPath+".pa",patternFile,true);
     }
     else if(indexType == "prefix-array" and oracleType == "plain-text")
     {
         load_index_mems
         <suffixient::suffix_array_binary_search<suffixient::uncompressed_text_oracle>,
          suffixient::uncompressed_text_oracle>
-        (inputPath,inputPath,inputPath+".pai",patternFile,true);
+        (inputPath,inputPath,inputPath+".pa",patternFile,true);
     }
     else if(indexType == "prefix-array" and oracleType == "bitpacked-text")
     {
         load_index_mems
         <suffixient::suffix_array_binary_search<suffixient::bitpacked_text_oracle>,
          suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath,inputPath+".pai",patternFile,true);
+        (inputPath,inputPath,inputPath+".pa",patternFile,true);
     }
     else if(indexType == "prefix-array" and oracleType == "rlz")
     {
         load_index_mems
         <suffixient::suffix_array_binary_search<RLZ_DNA<>>,
          RLZ_DNA<>>
-        (inputPath,inputPath+".rlz",inputPath+".pai",patternFile,true);
+        (inputPath,inputPath+".rlz",inputPath+".pa",patternFile,true);
     }
     else if(indexType == "elias-fano-opt" and oracleType == "lz77")
     {
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
                                                  suffixient::elias_fano_bitvector,
                                                  suffixient::succinct_bitvector>,
          lz77::LZ77_compressed_text>
-        (inputPath,inputPath+".lz77",inputPath+".efi",patternFile,true,true);
+        (inputPath,inputPath+".lz77",inputPath+".opt_sA",patternFile,true,true);
     }
     else if(indexType == "elias-fano-opt" and oracleType == "plain-text")
     {
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
                                                  suffixient::elias_fano_bitvector,
                                                  suffixient::succinct_bitvector>,
          suffixient::uncompressed_text_oracle>
-        (inputPath,inputPath,inputPath+".efi",patternFile,true,true);
+        (inputPath,inputPath,inputPath+".opt_sA",patternFile,true,true);
     }
     else if(indexType == "elias-fano-opt" and oracleType == "bitpacked-text")
     {
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
                                                  suffixient::elias_fano_bitvector,
                                                  suffixient::succinct_bitvector>,
          suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath,inputPath+".efi",patternFile,true,true);
+        (inputPath,inputPath,inputPath+".opt_sA",patternFile,true,true);
     }
     else if(indexType == "elias-fano-opt" and oracleType == "rlz")
     {
@@ -177,10 +177,11 @@ int main(int argc, char* argv[])
                                                  suffixient::elias_fano_bitvector,
                                                  suffixient::succinct_bitvector>,
          RLZ_DNA<>>
-        (inputPath,inputPath+".rlz",inputPath+".efi",patternFile,true,true);
+        (inputPath,inputPath+".rlz",inputPath+".opt_sA",patternFile,true,true);
     }
     else{
-        std::cout << "Not yet implemented..." << std::endl;
+        std::cout << "Not a valid input parameter configuration..."  <<
+                     " Please use the -h flag for more information." << std::endl;
         exit(1);
     }
     

@@ -39,7 +39,7 @@ def main():
   # define output basepath
   if args.output == "": args.output = args.input
 
-  logfile_name = args.input + ".suffixient.log"
+  logfile_name = args.input + ".suffixient-array.log"
   # get main directory
   args.bigbwt_dir = os.path.split(sys.argv[0])[0]
   print("Sending logging messages to file:", logfile_name)
@@ -86,9 +86,6 @@ def main():
         return
       print("Elapsed time: {0:.4f}".format(time.time()-start))
 
-      # ---- delete intermediate files
-      delete_temp_files(args,logfile,logfile_name)
-
       # ---- run suffixient construction
       command = "{exe} -i {file} -w {wsize} -n {size}".format(
               exe = os.path.join(args.bigbwt_dir,pfp_exe),
@@ -98,6 +95,9 @@ def main():
       print("==== Compute suffixient set. Command:", command)
       if(execute_command(command,logfile,logfile_name)!=True):
         return
+
+      # ---- delete temp files
+      delete_PFP_files(args,logfile,logfile_name)
 
   elapsed_time = time.time() - start
 
@@ -128,13 +128,15 @@ def execute_command_stdin(input_file,command,logfile,logfile_name,env=None):
     return False
   return True
 
-# delete intermediate files
-def delete_temp_files(args,logfile,logfile_name):
+# delete PFP files
+def delete_PFP_files(args,logfile,logfile_name):
     #if args.k==False:
     if True:
+
       print("==== Deleting temporary files.") # no need to show the command
-      command = "rm -f {file}.parse_old {file}.last {file}.bwlast {file}.ilist".format(file=args.input)
-      #command = "rm -f {file}.parse {file}.parse_old {file}.last {file}.bwlast {file}.dict {file}.ilist {file}.occ".format(file=args.input)
+
+      command = "rm -f {file}.parse_old {file}.parse {file}.dict " \
+          "{file}.occ {file}.last {file}.bwlast {file}.ilist".format(file=args.input)
       if(execute_command(command,logfile,logfile_name)!=True):
         return
       for i in range(args.threads):

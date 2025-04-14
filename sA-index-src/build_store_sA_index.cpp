@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
         construct_store_index
         <suffixient::suffixient_array_baseline<lz77::LZ77_compressed_text>,
                lz77::LZ77_compressed_text>
-        (inputPath,inputPath+".bai");
+        (inputPath,inputPath+".sA");
     }
     else if(indexType == "sA" and oracleType == "plain-text")
     {
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
         <suffixient::suffixient_array_baseline
                         <suffixient::uncompressed_text_oracle>,
                          suffixient::uncompressed_text_oracle>
-        (inputPath,inputPath+".bai");
+        (inputPath,inputPath+".sA");
     }
     else if(indexType == "sA" and oracleType == "bitpacked-text")
     {
@@ -142,14 +142,14 @@ int main(int argc, char* argv[])
         <suffixient::suffixient_array_baseline
                             <suffixient::bitpacked_text_oracle>,
                              suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath+".bai");
+        (inputPath,inputPath+".sA");
     }
     else if(indexType == "sA" and oracleType == "rlz")
     {
         construct_store_index
         <suffixient::suffixient_array_baseline
                         <RLZ_DNA<>>,RLZ_DNA<>>
-        (inputPath,inputPath+".bai");
+        (inputPath,inputPath+".sA");
     }
     else if(indexType == "PA" and oracleType == "lz77")
     {
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
         <suffixient::suffix_array_binary_search
                   <lz77::LZ77_compressed_text>,
                    lz77::LZ77_compressed_text>
-        (inputPath,inputPath+".pai");
+        (inputPath,inputPath+".pa");
     }
     else if(indexType == "PA" and oracleType == "plain-text")
     {
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
         <suffixient::suffix_array_binary_search
                         <suffixient::uncompressed_text_oracle>,
                          suffixient::uncompressed_text_oracle>
-        (inputPath,inputPath+".pai");
+        (inputPath,inputPath+".pa");
     }
     else if(indexType == "PA" and oracleType == "bitpacked-text")
     {
@@ -173,18 +173,18 @@ int main(int argc, char* argv[])
         <suffixient::suffix_array_binary_search
                             <suffixient::bitpacked_text_oracle>,
                              suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath+".pai");
+        (inputPath,inputPath+".pa");
     }
     else if(indexType == "PA" and oracleType == "rlz")
     {
         construct_store_index
         <suffixient::suffix_array_binary_search
                          <RLZ_DNA<>>,RLZ_DNA<>>
-        (inputPath,inputPath+".pai");
+        (inputPath,inputPath+".pa");
     }
     else if(indexType == "opt-sA" and oracleType == "lz77")
     {
-        std::string extension = ".efi";
+        std::string extension = ".opt_sA";
         construct_store_index
         <suffixient::suffixient_array_elias_fano<lz77::LZ77_compressed_text,
             suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
     }
     else if(indexType == "opt-sA" and oracleType == "plain-text")
     {
-        std::string extension = ".efi";
+        std::string extension = ".opt_sA";
         construct_store_index
         <suffixient::suffixient_array_elias_fano<suffixient::uncompressed_text_oracle,
                      suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
     }
     else if(indexType == "opt-sA" and oracleType == "bitpacked-text")
     {
-        std::string extension = ".efi";
+        std::string extension = ".opt_sA";
         construct_store_index
         <suffixient::suffixient_array_elias_fano<suffixient::bitpacked_text_oracle,
                      suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
     }
     else if(indexType == "opt-sA" and oracleType == "rlz")
     {
-        std::string extension = ".efi";
+        std::string extension = ".opt_sA";
         construct_store_index
         <suffixient::suffixient_array_elias_fano<RLZ_DNA<>,
          suffixient::elias_fano_bitvector,suffixient::succinct_bitvector>,
@@ -219,7 +219,8 @@ int main(int argc, char* argv[])
         (inputPath,inputPath+extension,additional_space);
     }
     else{
-        std::cout << "Not yet implemented..." << std::endl;
+        std::cout << "Not a valid input parameter configuration..."  <<
+                     " Please use the -h flag for more information." << std::endl;
         exit(1);
     }
 

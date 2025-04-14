@@ -75,20 +75,45 @@ You can construct the sA-index with different parameter combinations. Below is a
 
 <b>Best performance (DNA) + high space</b>: If you are working with a small DNA texts and you are interested in the best performance you can construct the sA-index with the `-v opt-sA -o bitpacked-text -e 100` configuration. The random access text oracle will be implemented as a simple bitpacked representation of the text stored in the internal memory, minimizing the random access times. 
 
-
 ### Run on Example Data
 
 ```console
 // Construct a smallest suffixient set using the PFP compressed-space one-pass algorithm
 python3 build/suffixient-set.py -a PFP data/yeast.txt 
 
-// Construct and query the baseline suffixient-array index (sA-index)
-python3 build/suffixient-array-index.py --build-index data/yeast.txt
+// Construct the baseline suffixient-array index (sA-index)
+python3 build/suffixient-array-index.py --build-index data/yeast.txt 
+
+// Run locate one occurrence and find MEMs queries
 python3 build/suffixient-array-index.py --locate-one-occ -p data/yeast_patterns.fasta data/yeast.txt
 python3 build/suffixient-array-index.py --find-mems -p data/paper_patterns.fasta data/paper_example.txt
 ```
 
-Note: The last three commands generate two index files, *data/yeast.txt.bai* and *data/yeast.txt.lz77*, as well as two text files: one containing the positions of the located patterns in the input text *data/yeast_patterns.fasta.occs*, and one containing the Maximal Exact Matches *data/yeast_patterns.fasta.mems*.
+### Output format
+
+The `suffixient-set.py` interface generates two output files: `prefix.suff` and `prefix.suffixient-array.log`.  
+You can modify the prefix using the `--output` flag.
+
+- **`prefix.suff`**: Contains the suffixient array stored in binary format, using 5 bytes per element.  
+- **`prefix.suffixient-array.log`**: Contains the standard output of the C++ binaries in plain text format.
+
+The `suffixient-array-index.py` interface generates a log file `.suffixient-array.log` and three types of output files, all prefixed by `input`:
+
+- **Suffixient-array files**:  
+  Three files containing the binary serialized version of the suffixient-array search data structures:  
+  - `.sA`: binary search on the suffixient array (sA).  
+  - `.opt_sA`: Elias-Fano optimized binary search on the sA.  
+  - `.pa`: binary search on the full Prefix Array.  
+
+- **Oracle files**:  
+  Two files containing the binary serialized versions of the random-access text oracles:  
+  - `.lz77`: LZ77-compressed text.  
+  - `.rlz`: Relative LZ-compressed text.  
+
+- **Query files**:  
+  Output of the `locate-one-occurrence` (`.occs`) and `find-mems` (`.mems`) queries in text format:  
+  - `.occs`: stores pairs containing a position in the text and the length of the longest matching pattern prefix.
+  - `.mems`: stores triples containing a starting position in the pattern, the MEM length, and the corresponding position in the text.
 
 ### Datasets
 
