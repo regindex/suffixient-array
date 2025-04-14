@@ -89,7 +89,7 @@ python3 build/suffixient-array-index.py --locate-one-occ -p data/yeast_patterns.
 python3 build/suffixient-array-index.py --find-mems -p data/paper_patterns.fasta data/paper_example.txt
 ```
 
-### Output format
+### Output files format
 
 The `suffixient-set.py` interface generates two output files: `prefix.suff` and `prefix.suffixient-array.log`.  
 You can modify the prefix using the `--output` flag.
@@ -101,14 +101,14 @@ The `suffixient-array-index.py` interface generates a log file `.suffixient-arra
 
 - **Suffixient-array files**:  
   Three files containing the binary serialized version of the suffixient-array search data structures:  
-  - `.sA`: binary search on the suffixient array (sA).  
-  - `.opt_sA`: Elias-Fano optimized binary search on the sA.  
-  - `.pa`: binary search on the full Prefix Array.  
+  - `.sA`: binary search on the suffixient array (using `-v sA` parameter).  
+  - `.opt_sA`: Elias-Fano optimized binary search on the sA (using `-v opt-sA` parameter).  
+  - `.pa`: binary search on the full Prefix Array (using `-v PA` parameter).  
 
 - **Oracle files**:  
   Two files containing the binary serialized versions of the random-access text oracles:  
-  - `.lz77`: LZ77-compressed text.  
-  - `.rlz`: Relative LZ-compressed text.  
+  - `.lz77`: LZ77-compressed text (using `-o lz77` parameter).  
+  - `.rlz`: Relative LZ-compressed text (using `-o rlz` parameter).  
 
 - **Query files**:  
   Output of the `locate-one-occurrence` (`.occs`) and `find-mems` (`.mems`) queries in text format:  
