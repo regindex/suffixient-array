@@ -1,7 +1,7 @@
 #ifndef UNCOMPRESSED_TEXT_ORACLE_HPP
 #define UNCOMPRESSED_TEXT_ORACLE_HPP
 
-#include <common_.hpp>
+#include <common.hpp>
 
 namespace suffixient {
 

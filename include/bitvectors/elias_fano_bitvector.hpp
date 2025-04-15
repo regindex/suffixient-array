@@ -11,7 +11,7 @@
 #include <cassert>
 #include <sdsl/bit_vectors.hpp>
 #include <sdsl/util.hpp>
-#include <common_.hpp>
+#include <common.hpp>
 
 namespace suffixient{
 

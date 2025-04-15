@@ -22,6 +22,7 @@ mems_exe    =  os.path.join(sA_src_dirname,   "mems")
 
 mapping   = { "sA": ".sA", "opt-sA": ".opt_sA", "PA": ".pa" }
 mapping_2 = { "sA": "suffixient-array", "opt-sA": "elias-fano-opt", "PA": "prefix-array" }
+mapping_3 = { "lz77": ".lz77", "rlz": ".rlz", "bitpacked-text": ".bitpacked" }
 
 def main():
   parser = argparse.ArgumentParser(description=Description, formatter_class=argparse.RawTextHelpFormatter)
@@ -94,10 +95,10 @@ def main():
 
       # check for the input files
       if( not os.path.exists(args.input+mapping[args.index_variant]) or
-          not os.path.exists(args.input+"."+args.oracle_variant) or
+          not os.path.exists(args.input+mapping_3[args.oracle_variant]) or
           not os.path.exists(args.input) or
           not os.path.exists(args.pattern_file)):
-        print("Error: some of the input files are missing... exiting.")
+        print("Error: some of the input files are missing... exiting.") 
         exit(1)
 
       print("Locating one occurrence of the patterns in:",args.pattern_file)
@@ -117,7 +118,7 @@ def main():
 
       # check for the input files
       if( not os.path.exists(args.input+mapping[args.index_variant]) or
-          not os.path.exists(args.input+"."+args.oracle_variant) or
+          not os.path.exists(args.input+mapping_3[args.oracle_variant]) or
           not os.path.exists(args.input) or
           not os.path.exists(args.pattern_file)):
         print("Error: some of the input files are missing... exiting.")

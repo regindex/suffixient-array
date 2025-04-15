@@ -10,7 +10,7 @@
 #define SUFFIXIENT_ARRAY_ELIAS_FANO_HPP_
 
 #include <cmath>
-#include <common_.hpp>
+#include <common.hpp>
 #include <sdsl/int_vector.hpp>
 
 #include <elias_fano_bitvector.hpp>

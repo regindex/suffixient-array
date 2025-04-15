@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
         load_index_mems
         <suffixient::suffixient_array_baseline<suffixient::bitpacked_text_oracle>,
          suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath,inputPath+".sA",patternFile,true);
+        (inputPath,inputPath+".bitpacked",inputPath+".sA",patternFile,true);
     }
     else if(indexType == "suffixient-array" and oracleType == "rlz")
     {
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
         load_index_mems
         <suffixient::suffix_array_binary_search<suffixient::bitpacked_text_oracle>,
          suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath,inputPath+".pa",patternFile,true);
+        (inputPath,inputPath+".bitpacked",inputPath+".pa",patternFile,true);
     }
     else if(indexType == "prefix-array" and oracleType == "rlz")
     {
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
                                                  suffixient::elias_fano_bitvector,
                                                  suffixient::succinct_bitvector>,
          suffixient::bitpacked_text_oracle>
-        (inputPath,inputPath,inputPath+".opt_sA",patternFile,true,true);
+        (inputPath,inputPath+".bitpacked",inputPath+".opt_sA",patternFile,true,true);
     }
     else if(indexType == "elias-fano-opt" and oracleType == "rlz")
     {

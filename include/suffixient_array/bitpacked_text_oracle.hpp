@@ -1,7 +1,7 @@
 #ifndef BITPACKED_TEXT_ORACLE_HPP
 #define BITPACKED_TEXT_ORACLE_HPP
 
-#include <common_.hpp>
+#include <common.hpp>
 
 namespace suffixient {
 
@@ -17,10 +17,10 @@ public:
     {
         std::ifstream file_text(input_file_path, std::ios::binary);
         file_text.seekg(0, std::ios::end);
-        this->N = file_text.tellg();
+        usafe_t N = file_text.tellg();
         file_text.seekg(0, std::ios::beg);
 
-        this->T.resize(this->N);
+        this->T.resize(N);
         for(usafe_t i=0;i<N;++i)
         {
             char_t c;
@@ -29,28 +29,40 @@ public:
                 { std::cerr << "Non DNA character detected!" << std::endl; exit(1); }
             T[i] = dna_to_code_table[c];
         }
+
+        std::ofstream fout(input_file_path+".bitpacked", std::ios::binary);
+        store(fout);
+        fout.close();
     } 
 
-    usafe_t store(std::string output_file_path)
+    usafe_t store(std::ostream& out) const
     {
-        usafe_t w_bytes = (this->N * PACKED_INT_SIZE)/8;
+        //usafe_t w_bytes = (this->N * PACKED_INT_SIZE)/8;
+        usafe_t w_bytes = T.serialize(out);
 
         return w_bytes;
     }
 
-    void load(std::string input_file_path)
+    void load(std::istream& in)
     {
-        build(input_file_path);
+        T.load(in);
     }
 
-    usafe_t size(){ return (T.size() * PACKED_INT_SIZE)/8 + sizeof(N); }
+    void load(const std::string& input_file_path)
+    {
+        std::ifstream fin(input_file_path, std::ios::binary);
+        load(fin);
+        fin.close();
+    }
+
+    usafe_t size(){ return (T.size() * PACKED_INT_SIZE)/8; }
 
     unsigned char extract(usafe_t i){ return code_to_dna_table[this->T[i]]; }
     
     usafe_t LCP(std::string& pattern, usafe_t p, usafe_t t)
     {
         usafe_t matched_chars = 0;
-        usafe_t available_chars = std::min((pattern.size()-p),(this->N-t));
+        usafe_t available_chars = std::min((pattern.size()-p),(this->T.size()-t));
 
         while(available_chars > 0)
         {
@@ -245,7 +257,7 @@ public:
 private:
 
    sdsl::int_vector<PACKED_INT_SIZE> T;  
-   usafe_t N;
+   // usafe_t N;
 };
 
 }  // namespace suffixient

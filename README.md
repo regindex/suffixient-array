@@ -102,13 +102,14 @@ The `suffixient-array-index.py` interface generates a log file `.suffixient-arra
 - **Suffixient-array files**:  
   Three files containing the binary serialized version of the suffixient-array search data structures:  
   - `.sA`: binary search on the suffixient array (using `-v sA` parameter).  
-  - `.opt_sA`: Elias-Fano optimized binary search on the sA (using `-v opt-sA` parameter).  
+  - `.opt_sA`: Elias-Fano optimized binary search on the sA (using `-v opt-sA` parameter, DNA only).  
   - `.pa`: binary search on the full Prefix Array (using `-v PA` parameter).  
 
 - **Oracle files**:  
   Two files containing the binary serialized versions of the random-access text oracles:  
   - `.lz77`: LZ77-compressed text (using `-o lz77` parameter).  
-  - `.rlz`: Relative LZ-compressed text (using `-o rlz` parameter).  
+  - `.rlz`: Relative LZ-compressed text (using `-o rlz` parameter, DNA only).  
+  - `.bitpacked`: Bitpacked text using 2 bits per character (using `-o rlz` parameter, DNA only).  
 
 - **Query files**:  
   Output of the `locate-one-occurrence` (`.occs`) and `find-mems` (`.mems`) queries in text format:  

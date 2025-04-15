@@ -60,7 +60,7 @@ void construct_store_index(std::string inputPath, std::string indexPath,
     // initialize the index
     suffixient::suffixient_array_index
             <indexType,oracleType> suff_index;
-    // construct baseline index
+    // construct the sA-index
     suff_index.build(inputPath,storedLen);
     std::cout << "Index size = " << 
     suff_index.store(indexPath)

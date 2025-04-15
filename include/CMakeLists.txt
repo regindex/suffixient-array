@@ -1,5 +1,5 @@
-add_subdirectory(common_)
-target_include_directories(common_ PUBLIC common_)
+add_subdirectory(common)
+target_include_directories(common PUBLIC common)
 
 add_subdirectory(pfp_iterator)
 target_include_directories(pfp_iterator PUBLIC pfp_iterator)

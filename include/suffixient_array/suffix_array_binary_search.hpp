@@ -10,7 +10,7 @@
 #define SUFFIX_ARRAY_BINARY_SEARCH_HPP_
 
 #include <cmath>
-#include <common_.hpp>
+#include <common.hpp>
 #include <sdsl/int_vector.hpp>
 
 namespace suffixient{
