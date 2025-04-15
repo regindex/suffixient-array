@@ -16,7 +16,7 @@
 // suffixient array elias-fano augmented data structure 
 #include <suffixient_array_elias_fano.hpp>
 // suffix array data structure
-#include <suffix_array_binary_search.hpp>
+#include <prefix_array_binary_search.hpp>
 // Text oracle data structure
 //#include <LZ77_compressed_text.hpp>
 #include <LZ77_compressed_text-modified.hpp>

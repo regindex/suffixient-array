@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     else if(indexType == "PA" and oracleType == "lz77")
     {
         construct_store_index
-        <suffixient::suffix_array_binary_search
+        <suffixient::prefix_array_binary_search
                   <lz77::LZ77_compressed_text>,
                    lz77::LZ77_compressed_text>
         (inputPath,inputPath+".pa");
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
     else if(indexType == "PA" and oracleType == "plain-text")
     {
         construct_store_index
-        <suffixient::suffix_array_binary_search
+        <suffixient::prefix_array_binary_search
                         <suffixient::uncompressed_text_oracle>,
                          suffixient::uncompressed_text_oracle>
         (inputPath,inputPath+".pa");
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
     else if(indexType == "PA" and oracleType == "bitpacked-text")
     {
         construct_store_index
-        <suffixient::suffix_array_binary_search
+        <suffixient::prefix_array_binary_search
                             <suffixient::bitpacked_text_oracle>,
                              suffixient::bitpacked_text_oracle>
         (inputPath,inputPath+".pa");
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     else if(indexType == "PA" and oracleType == "rlz")
     {
         construct_store_index
-        <suffixient::suffix_array_binary_search
+        <suffixient::prefix_array_binary_search
                          <RLZ_DNA<>>,RLZ_DNA<>>
         (inputPath,inputPath+".pa");
     }

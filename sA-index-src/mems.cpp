@@ -118,28 +118,28 @@ int main(int argc, char* argv[])
     else if(indexType == "prefix-array" and oracleType == "lz77")
     {
         load_index_mems
-        <suffixient::suffix_array_binary_search<lz77::LZ77_compressed_text>,
+        <suffixient::prefix_array_binary_search<lz77::LZ77_compressed_text>,
                lz77::LZ77_compressed_text>
         (inputPath,inputPath+".lz77",inputPath+".pa",patternFile,true);
     }
     else if(indexType == "prefix-array" and oracleType == "plain-text")
     {
         load_index_mems
-        <suffixient::suffix_array_binary_search<suffixient::uncompressed_text_oracle>,
+        <suffixient::prefix_array_binary_search<suffixient::uncompressed_text_oracle>,
          suffixient::uncompressed_text_oracle>
         (inputPath,inputPath,inputPath+".pa",patternFile,true);
     }
     else if(indexType == "prefix-array" and oracleType == "bitpacked-text")
     {
         load_index_mems
-        <suffixient::suffix_array_binary_search<suffixient::bitpacked_text_oracle>,
+        <suffixient::prefix_array_binary_search<suffixient::bitpacked_text_oracle>,
          suffixient::bitpacked_text_oracle>
         (inputPath,inputPath+".bitpacked",inputPath+".pa",patternFile,true);
     }
     else if(indexType == "prefix-array" and oracleType == "rlz")
     {
         load_index_mems
-        <suffixient::suffix_array_binary_search<RLZ_DNA<>>,
+        <suffixient::prefix_array_binary_search<RLZ_DNA<>>,
          RLZ_DNA<>>
         (inputPath,inputPath+".rlz",inputPath+".pa",patternFile,true);
     }

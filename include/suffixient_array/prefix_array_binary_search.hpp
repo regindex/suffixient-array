@@ -6,8 +6,8 @@
  *  suffixient_array_binary_search: index performing binary search on the full prefix array
  */
 
-#ifndef SUFFIX_ARRAY_BINARY_SEARCH_HPP_
-#define SUFFIX_ARRAY_BINARY_SEARCH_HPP_
+#ifndef PREFIX_ARRAY_BINARY_SEARCH_HPP_
+#define PREFIX_ARRAY_BINARY_SEARCH_HPP_
 
 #include <cmath>
 #include <common.hpp>
@@ -16,11 +16,11 @@
 namespace suffixient{
 
 template<class text_oracle>
-class suffix_array_binary_search{
+class prefix_array_binary_search{
 
 public:
 
-	suffix_array_binary_search(){ this->alph = sdsl::int_vector<>(SIGMA,0,40); }
+	prefix_array_binary_search(){ this->alph = sdsl::int_vector<>(SIGMA,0,40); }
 
 	int_t get_len(){ return this->len; }
 
